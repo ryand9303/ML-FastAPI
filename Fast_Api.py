@@ -220,6 +220,10 @@ def load_models():
 
 load_models()  # Load the models at startup
 
+@app.get("/test")
+def test_connection():
+    return {"message": "FastAPI is connected and working!"}
+
 
 @app.get("/")
 
