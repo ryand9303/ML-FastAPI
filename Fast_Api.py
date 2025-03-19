@@ -230,9 +230,9 @@ def download_file_from_github(model_type, model_version, filename):
     """Download a file from GitHub and check if it exists."""
     
     # Encode spaces in model type names for correct GitHub URL
-    model_type_encoded = model_type.replace(" ", "%20")  
+    #model_type_encoded = model_type.replace(" ", "%20")  
 
-    url = f"{GITHUB_REPO_URL}/{model_type_encoded}/{model_version}/{filename}"
+    url = f"{GITHUB_REPO_URL}/{model_type}/{model_version}/{filename}"
     
     print(f"🔗 Attempting to download: {url}")  # Debugging
     response = requests.get(url)
