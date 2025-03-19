@@ -246,57 +246,57 @@ def load_models():
     for model in MODELS:
         model_type = model["model_type"]
         model_version = model["version"]
-        model_key = f"{model_type} {model_version}"  # Unique identifier: Type + Version
+        model_key = f"{model_type} {model_version}"  # Unique identifier
 
         print(f"🔄 Checking model {model_key} ...")  # Debugging
 
         try:
-            # Dynamically determine filenames based on model type and version
-            feature_file = f"features{model_version}.json"
-            metrics_file = f"performance_metrics{model_version}.json"
-            model_file = f"tuned_multi_output_model{model_version}.pkl"
+            # Dynamically determine filenames
+            feature_file = f"features{model_version.replace('.', '')}.json"
+            metrics_file = f"performance_metrics{model_version.replace('.', '')}.json"
+            model_file = f"tuned_multi_output_model{model_version.replace('.', '')}.pkl"
 
-            # Check availability of all required files
+            # ✅ Pass model_type and version separately
             model_content = download_file_from_github(model_type, model_version, model_file)
             features_content = download_file_from_github(model_type, model_version, feature_file)
             metrics_content = download_file_from_github(model_type, model_version, metrics_file)
-        
 
-            # Check if files exist before proceeding
+            # Check if files exist
             if not all([model_content, features_content, metrics_content]):
-                print(f"⚠️ Model {model_key} is missing files and will be marked as unavailable.")
+                print(f"⚠️ Model {model_key} is missing files. Marking as unavailable.")
                 model_availability[model_key] = False
-                continue  # Skip loading this model
+                continue
 
-            # Deserialize files safely
+            # Deserialize files
+            print(f"📦 Unpacking model {model_key}")
             try:
                 model_obj = pickle.loads(model_content)
             except pickle.UnpicklingError as e:
-                print(f"❌ Error unpickling {model_key}: {e}")
-                continue  # Skip this model
+                print(f"❌ Unpickling failed for {model_key}: {e}")
+                continue
 
             features = json.loads(features_content)
             performance_metrics = json.loads(metrics_content)
 
-            # Store model in dictionary with unique identifier
+            # Store in memory
             models[model_key] = {
                 "model": model_obj,
                 "features": features,
                 "performance_metrics": performance_metrics,
             }
 
-            # Store feature and target details for the `getDataSummary` function
+            # Store for `getDataSummary`
             data_summary[model_key] = {
                 "features": features.get("features", []),
                 "targets": features.get("targets", [])
             }
 
-            model_availability[model_key] = True  # Mark model as available
+            model_availability[model_key] = True  # Mark as available
             print(f"✅ Loaded {model_key} successfully!")
 
         except Exception as e:
             print(f"❌ Error loading {model_key}: {e}")
-            model_availability[model_key] = False  # Mark model as unavailable
+            model_availability[model_key] = False  # Mark as unavailable
 
 # Load models at startup
 load_models()
