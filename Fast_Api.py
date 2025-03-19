@@ -219,14 +219,14 @@ MODELS = [
 ]
 
 # GitHub repository details (CHANGE URL TO MATCH YOUR REPO)
-GITHUB_REPO_URL = "https://raw.githubusercontent.com/ryand9303/ML-FastAPI/main"
+GITHUB_REPO_URL = "https://raw.githubusercontent.com/ryand9303/ML-FastAPI/main/Models"
 
 # Store models in memory
 models = {}
 model_availability = {}  # Dictionary to store model availability status
 data_summary = {}  # Store feature and target type information
 
-def download_file_from_github(model_type, model_version,filename):
+def download_file_from_github(model_type, model_version, filename):
     """Download a file from GitHub and check if it exists."""
     
     url = f"{GITHUB_REPO_URL}/{model_type}/{model_version}/{filename}"
