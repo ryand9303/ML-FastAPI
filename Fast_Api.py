@@ -35,7 +35,7 @@
 # ]
 
 # # GitHub repository details (CHANGE URL TO MATCH YOUR REPO)
-# GITHUB_REPO_URL = "https://raw.githubusercontent.com/ryand9303/ML-FastAPI/main"
+# GITHUB_REPO_URL = "https://raw.githubusercontent.com/ryand9303/ML-FastAPI/main/Models"
 
 # # Store models in memory
 # models = {}
