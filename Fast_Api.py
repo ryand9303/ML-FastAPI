@@ -52,11 +52,11 @@ def download_file_from_github(model_folder, filename):
 def load_models():
     """Download and load models from GitHub dynamically, checking availability."""
     for model in MODELS:
-        model_folder = model["model_type"]
+        model_folder = f"{model['model_type']} {model['version']}"  # Unique identifier: Type + Version
         model_version = model["version"]
 
         try:
-            # Dynamically determine filenames based on model type
+            # Dynamically determine filenames based on model type and version
             feature_file = f"features{model_version.replace('.', '')}.json"
             metrics_file = f"performance_metrics{model_version.replace('.', '')}.json"
             model_file = f"tuned_multi_output_model{model_version.replace('.', '')}.pkl"
@@ -76,7 +76,7 @@ def load_models():
             features = json.loads(features_content)
             performance_metrics = json.loads(metrics_content)
 
-            # Store model in dictionary
+            # Store model in dictionary with unique identifier
             models[model_folder] = {
                 "model": model_obj,
                 "features": features,
@@ -100,9 +100,9 @@ def home():
 @app.get("/getAvailableModels")
 def get_available_models():
     """Returns a list of available models with their versions and availability status."""
-    return [{"model": model["model_type"], "version": model["version"], "available": model_availability.get(model["model_type"], False)} for model in MODELS]
+    return [{"model": f"{model['model_type']} {model['version']}", "available": model_availability.get(f"{model['model_type']} {model['version']}", False)} for model in MODELS]
 
-@app.get("/getModelFeatures/{model_id}{version}")
+@app.get("/getModelFeatures/{model_id}")
 def get_model_features(model_id: str):
     """Returns the features for a specific model."""
     if model_id not in models:
@@ -154,3 +154,4 @@ def predict(input_data: PredictionInput):
 
 if __name__ == "__main__":
     uvicorn.run(app, host="127.0.0.1", port=5555)
+
