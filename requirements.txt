@@ -6,5 +6,3 @@ plotly
 pandas
 requests
 typing
-os
-json
