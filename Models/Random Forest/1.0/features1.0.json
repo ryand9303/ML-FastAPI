@@ -1,0 +1,1208 @@
+{
+    "PM1_P": {
+        "data_type": "float64",
+        "average": 4.375289790073542,
+        "min": 3.0,
+        "max": 15.0
+    },
+    "PM2_P": {
+        "data_type": "float64",
+        "average": 97.79540887349849,
+        "min": 13.0,
+        "max": 242.0
+    },
+    "Mods1_Q": {
+        "data_type": "float64",
+        "average": 102.17069866357203,
+        "min": 16.0,
+        "max": 248.0
+    },
+    "T1": {
+        "data_type": "float64",
+        "average": 9.246316776549559,
+        "min": 1.0,
+        "max": 15.0
+    },
+    "T2": {
+        "data_type": "float64",
+        "average": 9.483737505689335,
+        "min": 3.0,
+        "max": 20.0
+    },
+    "T3": {
+        "data_type": "float64",
+        "average": 1.0,
+        "min": 1.0,
+        "max": 1.0
+    },
+    "T4": {
+        "data_type": "float64",
+        "average": 5.20618623952963,
+        "min": 3.0,
+        "max": 20.0
+    },
+    "T4b": {
+        "data_type": "float64",
+        "average": 0.0,
+        "min": 0.0,
+        "max": 0.0
+    },
+    "Mods1_Bridge_Position": {
+        "data_type": "float64",
+        "average": 0.0,
+        "min": 0.0,
+        "max": 0.0
+    },
+    "T5": {
+        "data_type": "float64",
+        "average": 1.0,
+        "min": 1.0,
+        "max": 1.0
+    },
+    "T6": {
+        "data_type": "float64",
+        "average": 3.7648900869836015,
+        "min": 3.0,
+        "max": 20.0
+    },
+    "T7": {
+        "data_type": "float64",
+        "average": 3.6571561471428233,
+        "min": 1.0,
+        "max": 15.0
+    },
+    "R8": {
+        "data_type": "float64",
+        "average": 100.0,
+        "min": 100.0,
+        "max": 100.0
+    },
+    "PM1_Alpha": {
+        "data_type": "float64",
+        "average": 0.6690874819205599,
+        "min": 0.1,
+        "max": 1.0
+    },
+    "PM2_Alpha": {
+        "data_type": "float64",
+        "average": 0.8128539620790891,
+        "min": 0.1,
+        "max": 1.0
+    },
+    "Mods1_Inner_Alpha": {
+        "data_type": "float64",
+        "average": 1.0487398404324693,
+        "min": 0.7,
+        "max": 1.3
+    },
+    "k_Mods1_Alpha": {
+        "data_type": "float64",
+        "average": 1.0,
+        "min": 1.0,
+        "max": 1.0
+    },
+    "PM1_Radial_Portion": {
+        "data_type": "float64",
+        "average": 1.0,
+        "min": 1.0,
+        "max": 1.0
+    },
+    "PM2_Radial_Portion": {
+        "data_type": "float64",
+        "average": 1.0,
+        "min": 1.0,
+        "max": 1.0
+    },
+    "PM1_EM_Theta0": {
+        "data_type": "float64",
+        "average": 0.0,
+        "min": 0.0,
+        "max": 0.0
+    },
+    "PM2_EM_Theta0": {
+        "data_type": "float64",
+        "average": -90.0,
+        "min": -90.0,
+        "max": -90.0
+    },
+    "pm1rMatIndx": {
+        "data_type": "float64",
+        "average": 5.0,
+        "min": 5.0,
+        "max": 5.0
+    },
+    "pm1tMatIndx": {
+        "data_type": "float64",
+        "average": 0.0,
+        "min": 0.0,
+        "max": 0.0
+    },
+    "pm2rMatIndx": {
+        "data_type": "float64",
+        "average": 5.0,
+        "min": 5.0,
+        "max": 5.0
+    },
+    "pm2tMatIndx": {
+        "data_type": "float64",
+        "average": 0.0,
+        "min": 0.0,
+        "max": 0.0
+    },
+    "Temperature": {
+        "data_type": "float64",
+        "average": 20.0,
+        "min": 20.0,
+        "max": 20.0
+    },
+    "pm1rBknee": {
+        "data_type": "float64",
+        "average": -1.7969999999999977,
+        "min": -1.797,
+        "max": -1.797
+    },
+    "pm1tBknee": {
+        "data_type": "float64",
+        "average": 0.31200000000000033,
+        "min": 0.312,
+        "max": 0.312
+    },
+    "pm2rBknee": {
+        "data_type": "float64",
+        "average": -1.7969999999999977,
+        "min": -1.797,
+        "max": -1.797
+    },
+    "pm2tBknee": {
+        "data_type": "float64",
+        "average": 0.31200000000000033,
+        "min": 0.312,
+        "max": 0.312
+    },
+    "Rotor1_Force.Force_mag": {
+        "data_type": "float64",
+        "average": 21841.709664761718,
+        "min": 129.7046342028994,
+        "max": 119696.0740676008
+    },
+    "Rotor2_Force.Force_mag": {
+        "data_type": "float64",
+        "average": 36760.01259984324,
+        "min": 163.8496565230036,
+        "max": 128348.2091061412
+    },
+    "Mods1_Force.Force_mag": {
+        "data_type": "float64",
+        "average": 28131.879973763873,
+        "min": 597.50501514659,
+        "max": 123088.1689696384
+    },
+    "PM1_Torque.Torque": {
+        "data_type": "float64",
+        "average": 205.82523260384045,
+        "min": -134.3251401721784,
+        "max": 1613.15590331782
+    },
+    "PM1_Force.Force_mag": {
+        "data_type": "float64",
+        "average": 28695.008208650674,
+        "min": 28.9643629414464,
+        "max": 236206.9433664844
+    },
+    "PM2_Torque.Torque": {
+        "data_type": "float64",
+        "average": 2892.2291184588876,
+        "min": -61.0336067440312,
+        "max": 7249.13467748622
+    },
+    "PM2_Force.Force_mag": {
+        "data_type": "float64",
+        "average": 149639.27557386333,
+        "min": 4097.1263010791,
+        "max": 399073.2511472612
+    },
+    "Rotor1_Demag_Percentage": {
+        "data_type": "float64",
+        "average": 0.0,
+        "min": 0.0,
+        "max": 0.0
+    },
+    "Rotor2_Demag_Percentage": {
+        "data_type": "float64",
+        "average": 0.0,
+        "min": 0.0,
+        "max": 0.0
+    },
+    "PM1_Outs_Demag_Percentage": {
+        "data_type": "float64",
+        "average": 0.0,
+        "min": 0.0,
+        "max": 0.0
+    },
+    "PM2_Outs_Demag_Percentage": {
+        "data_type": "float64",
+        "average": 0.0,
+        "min": 0.0,
+        "max": 0.0
+    },
+    "PM1_Ins_Demag_Percentage": {
+        "data_type": "float64",
+        "average": 0.0,
+        "min": 0.0,
+        "max": 0.0
+    },
+    "PM2_Ins_Demag_Percentage": {
+        "data_type": "float64",
+        "average": 0.0,
+        "min": 0.0,
+        "max": 0.0
+    },
+    "PM1_Radial_Demag_Percentage": {
+        "data_type": "float64",
+        "average": 0.0,
+        "min": 0.0,
+        "max": 0.0
+    },
+    "PM2_Radial_Demag_Percentage": {
+        "data_type": "float64",
+        "average": 0.0,
+        "min": 0.0,
+        "max": 0.0
+    },
+    "AG1 Middle Circle max Mag_B": {
+        "data_type": "float64",
+        "average": 2.3571359628319857,
+        "min": 0.737520090443364,
+        "max": 7.98878544156792
+    },
+    "AG1 Middle Circle rms Mag_B": {
+        "data_type": "float64",
+        "average": 1.1712894420563615,
+        "min": 0.0,
+        "max": 3.752332010795564
+    },
+    "AG1 Middle Circle max Br": {
+        "data_type": "float64",
+        "average": 2.108879379366902,
+        "min": 0.649392685793532,
+        "max": 6.96607382209564
+    },
+    "AG1 Middle Circle rms Br": {
+        "data_type": "float64",
+        "average": 1.0325990072216487,
+        "min": 0.0,
+        "max": 3.61640269773208
+    },
+    "AG2 Middle Circle max Mag_B": {
+        "data_type": "float64",
+        "average": 2.869847368743945,
+        "min": 0.207175766940872,
+        "max": 8.5538189023308
+    },
+    "AG2 Middle Circle rms Mag_B": {
+        "data_type": "float64",
+        "average": 1.382615468506956,
+        "min": 0.1111997340816742,
+        "max": 3.946157359637352
+    },
+    "AG2 Middle Circle max Br": {
+        "data_type": "float64",
+        "average": 2.6285097613625865,
+        "min": 0.1926281026367182,
+        "max": 8.28103125030836
+    },
+    "AG2 Middle Circle rms Br": {
+        "data_type": "float64",
+        "average": 1.1699903647944287,
+        "min": 0.0843574715349528,
+        "max": 3.604421595801692
+    },
+    "BI1 Middle Circle max Mag_B": {
+        "data_type": "float64",
+        "average": 3.8728169298037853,
+        "min": 0.0,
+        "max": 17.69088504351684
+    },
+    "BI1 Middle Circle rms Mag_B": {
+        "data_type": "float64",
+        "average": 2.799929885375522,
+        "min": 0.0,
+        "max": 10.55861077358356
+    },
+    "BI1 Middle Circle max Br": {
+        "data_type": "float64",
+        "average": 1.2245039662378725,
+        "min": 0.0,
+        "max": 9.03088698459972
+    },
+    "BI1 Middle Circle rms Br": {
+        "data_type": "float64",
+        "average": 0.6903211979564693,
+        "min": 0.0,
+        "max": 3.271960791213324
+    },
+    "BI2 Middle Circle max Mag_B": {
+        "data_type": "float64",
+        "average": 5.686632091918552,
+        "min": 0.0011930161209718,
+        "max": 15.41054009865236
+    },
+    "BI2 Middle Circle rms Mag_B": {
+        "data_type": "float64",
+        "average": 3.6990976111045972,
+        "min": 0.0005835494480802,
+        "max": 9.20300934552552
+    },
+    "BI2 Middle Circle max Br": {
+        "data_type": "float64",
+        "average": 2.672125472771151,
+        "min": 0.0005512659944994,
+        "max": 12.18789611862024
+    },
+    "BI2 Middle Circle rms Br": {
+        "data_type": "float64",
+        "average": 0.9253249521896036,
+        "min": 0.0001673561054802,
+        "max": 2.932246436711984
+    },
+    "Bore 1mm Circle max Mag_B": {
+        "data_type": "float64",
+        "average": 0.12574466456835767,
+        "min": 1.04145044979822e-06,
+        "max": 4.06256066289688
+    },
+    "Bore 1mm Circle rms Mag_B": {
+        "data_type": "float64",
+        "average": 0.07265706775458833,
+        "min": 6.33913503299548e-07,
+        "max": 2.56566642064718
+    },
+    "Bore 1mm Circle max Br": {
+        "data_type": "float64",
+        "average": 0.10512821433156028,
+        "min": 6.11538146739316e-07,
+        "max": 2.224303500407356
+    },
+    "Bore 1mm Circle rms Br": {
+        "data_type": "float64",
+        "average": 0.05289143786869334,
+        "min": 4.71576207241504e-07,
+        "max": 1.8163288429154
+    },
+    "Bore 2mm Circle max Mag_B": {
+        "data_type": "float64",
+        "average": 0.11008764731219584,
+        "min": 6.63434170473384e-07,
+        "max": 3.28939413840854
+    },
+    "Bore 2mm Circle rms Mag_B": {
+        "data_type": "float64",
+        "average": 0.06694072513898401,
+        "min": 4.42895896142484e-07,
+        "max": 2.252413301282696
+    },
+    "Bore 2mm Circle max Br": {
+        "data_type": "float64",
+        "average": 0.09033178438968303,
+        "min": 3.28614436738078e-07,
+        "max": 1.988534278709856
+    },
+    "Bore 2mm Circle rms Br": {
+        "data_type": "float64",
+        "average": 0.048164856828590195,
+        "min": 3.264912250789972e-07,
+        "max": 1.593108836868756
+    },
+    "Bore 3mm Circle max Mag_B": {
+        "data_type": "float64",
+        "average": 0.09739797902249857,
+        "min": 3.92472855478836e-07,
+        "max": 2.786761159143004
+    },
+    "Bore 3mm Circle rms Mag_B": {
+        "data_type": "float64",
+        "average": 0.06204241879231125,
+        "min": 2.18169096162772e-07,
+        "max": 2.052710604923416
+    },
+    "Bore 3mm Circle max Br": {
+        "data_type": "float64",
+        "average": 0.07854302569112924,
+        "min": 1.366345026076312e-07,
+        "max": 1.83137245251654
+    },
+    "Bore 3mm Circle rms Br": {
+        "data_type": "float64",
+        "average": 0.04427944815321278,
+        "min": 1.579486532565348e-07,
+        "max": 1.451430513583924
+    },
+    "Bore 5mm Circle max Mag_B": {
+        "data_type": "float64",
+        "average": 0.07823702202852753,
+        "min": 1.763907774026398e-07,
+        "max": 2.175693979358936
+    },
+    "Bore 5mm Circle rms Mag_B": {
+        "data_type": "float64",
+        "average": 0.05400006862810584,
+        "min": 1.146208502151804e-07,
+        "max": 1.731699947184424
+    },
+    "Bore 5mm Circle max Br": {
+        "data_type": "float64",
+        "average": 0.06237853607578195,
+        "min": 1.700211170798638e-07,
+        "max": 1.572689062535156
+    },
+    "Bore 5mm Circle rms Br": {
+        "data_type": "float64",
+        "average": 0.03826594212963809,
+        "min": 7.8287308187094e-08,
+        "max": 1.22172164542422
+    },
+    "Bore 7mm Circle max Mag_B": {
+        "data_type": "float64",
+        "average": 0.06467843271810927,
+        "min": 1.255776523409476e-07,
+        "max": 1.740371401670656
+    },
+    "Bore 7mm Circle rms Mag_B": {
+        "data_type": "float64",
+        "average": 0.0476029413361039,
+        "min": 1.0065173207533e-07,
+        "max": 1.46431428663192
+    },
+    "Bore 7mm Circle max Br": {
+        "data_type": "float64",
+        "average": 0.05233305147551653,
+        "min": 1.058880362066448e-08,
+        "max": 1.379341578291716
+    },
+    "Bore 7mm Circle rms Br": {
+        "data_type": "float64",
+        "average": 0.03373605030266966,
+        "min": 7.10291536283042e-08,
+        "max": 1.033753303452032
+    },
+    "Bore 10mm Circle max Mag_B": {
+        "data_type": "float64",
+        "average": 0.05021984769919757,
+        "min": 1.079797867384978e-07,
+        "max": 1.310070368863548
+    },
+    "Bore 10mm Circle rms Mag_B": {
+        "data_type": "float64",
+        "average": 0.04008158231672767,
+        "min": 6.47706985988716e-08,
+        "max": 1.136465137926516
+    },
+    "Bore 10mm Circle max Br": {
+        "data_type": "float64",
+        "average": 0.04325196712233658,
+        "min": -5.1611199623478e-08,
+        "max": 1.185251893887284
+    },
+    "Bore 10mm Circle rms Br": {
+        "data_type": "float64",
+        "average": 0.028467861896658557,
+        "min": 6.30280637333236e-08,
+        "max": 0.806579112262496
+    },
+    "Bore 15mm Circle max Mag_B": {
+        "data_type": "float64",
+        "average": 0.03512525760923756,
+        "min": 1.9932249087153962e-08,
+        "max": 0.81795800363713
+    },
+    "Bore 15mm Circle rms Mag_B": {
+        "data_type": "float64",
+        "average": 0.030756104452328695,
+        "min": 1.4147234657693801e-08,
+        "max": 0.745636589364808
+    },
+    "Bore 15mm Circle max Br": {
+        "data_type": "float64",
+        "average": 0.03278415428890724,
+        "min": -6.4272308669686e-06,
+        "max": 0.741595581414412
+    },
+    "Bore 15mm Circle rms Br": {
+        "data_type": "float64",
+        "average": 0.02185433373082466,
+        "min": 9.89006515715624e-09,
+        "max": 0.523331034655088
+    },
+    "Bore 20mm Circle max Mag_B": {
+        "data_type": "float64",
+        "average": 0.02590425232471703,
+        "min": 2.747788505695116e-09,
+        "max": 0.612458122117196
+    },
+    "Bore 20mm Circle rms Mag_B": {
+        "data_type": "float64",
+        "average": 0.023392517618705554,
+        "min": 2.715122208417472e-09,
+        "max": 0.537097359909718
+    },
+    "Bore 20mm Circle max Br": {
+        "data_type": "float64",
+        "average": 0.025476729663768814,
+        "min": -1.342963188675248e-05,
+        "max": 0.51773371551131
+    },
+    "Bore 20mm Circle rms Br": {
+        "data_type": "float64",
+        "average": 0.01658159464041078,
+        "min": 1.077790291089464e-09,
+        "max": 0.381064926766606
+    },
+    "Bore 25mm Circle max Mag_B": {
+        "data_type": "float64",
+        "average": 0.01945392647463634,
+        "min": 2.273452808708272e-09,
+        "max": 0.434673550527584
+    },
+    "Bore 25mm Circle rms Mag_B": {
+        "data_type": "float64",
+        "average": 0.01765522132779255,
+        "min": 2.237208534015784e-09,
+        "max": 0.416461434524516
+    },
+    "Bore 25mm Circle max Br": {
+        "data_type": "float64",
+        "average": 0.01810922381419482,
+        "min": -0.000488622815748,
+        "max": 0.405391843078022
+    },
+    "Bore 25mm Circle rms Br": {
+        "data_type": "float64",
+        "average": 0.01248885040085637,
+        "min": 7.405857369489601e-10,
+        "max": 0.293349590073552
+    },
+    "Bore 30mm Circle max Mag_B": {
+        "data_type": "float64",
+        "average": 0.014325646384208064,
+        "min": 2.273452808708272e-09,
+        "max": 0.327665885192394
+    },
+    "Bore 30mm Circle rms Mag_B": {
+        "data_type": "float64",
+        "average": 0.012980496619250466,
+        "min": 2.17659633402976e-09,
+        "max": 0.313479301002492
+    },
+    "Bore 30mm Circle max Br": {
+        "data_type": "float64",
+        "average": 0.013767379095699259,
+        "min": -0.0006377596802612,
+        "max": 0.394925390664466
+    },
+    "Bore 30mm Circle rms Br": {
+        "data_type": "float64",
+        "average": 0.009236892043204917,
+        "min": 2.1216103304303238e-10,
+        "max": 0.220839019909894
+    },
+    "Exterior 1mm Circle max Mag_B": {
+        "data_type": "float64",
+        "average": 0.500281425806771,
+        "min": 3.03736344436524e-07,
+        "max": 2.742307700896204
+    },
+    "Exterior 1mm Circle rms Mag_B": {
+        "data_type": "float64",
+        "average": 0.29038327897157035,
+        "min": 1.715300549469016e-07,
+        "max": 1.430350811462648
+    },
+    "Exterior 1mm Circle max Br": {
+        "data_type": "float64",
+        "average": 0.38828220140748304,
+        "min": 3.42975170604366e-08,
+        "max": 2.04728031997112
+    },
+    "Exterior 1mm Circle rms Br": {
+        "data_type": "float64",
+        "average": 0.2051747803859219,
+        "min": 1.40262833280883e-07,
+        "max": 1.00963950179354
+    },
+    "Exterior 2mm Circle max Mag_B": {
+        "data_type": "float64",
+        "average": 0.37453703989427745,
+        "min": 2.80486776095308e-07,
+        "max": 2.101160653093056
+    },
+    "Exterior 2mm Circle rms Mag_B": {
+        "data_type": "float64",
+        "average": 0.25281268103743115,
+        "min": 1.577095799681046e-07,
+        "max": 1.146007043788256
+    },
+    "Exterior 2mm Circle max Br": {
+        "data_type": "float64",
+        "average": 0.30070013048918526,
+        "min": 3.15554924633878e-08,
+        "max": 1.679516740994808
+    },
+    "Exterior 2mm Circle rms Br": {
+        "data_type": "float64",
+        "average": 0.17885376994622817,
+        "min": 1.271668004532732e-07,
+        "max": 0.805669382329484
+    },
+    "Exterior 3mm Circle max Mag_B": {
+        "data_type": "float64",
+        "average": 0.30423890211214616,
+        "min": 2.5826257083907e-07,
+        "max": 1.6030012613613
+    },
+    "Exterior 3mm Circle rms Mag_B": {
+        "data_type": "float64",
+        "average": 0.23295634102424106,
+        "min": 1.447018430235994e-07,
+        "max": 1.029239683722024
+    },
+    "Exterior 3mm Circle max Br": {
+        "data_type": "float64",
+        "average": 0.25194857979603386,
+        "min": 2.88715308991356e-08,
+        "max": 1.583808665535176
+    },
+    "Exterior 3mm Circle rms Br": {
+        "data_type": "float64",
+        "average": 0.1646861953733277,
+        "min": 1.145324253208448e-07,
+        "max": 0.727199661081528
+    },
+    "Exterior 10mm Circle max Mag_B": {
+        "data_type": "float64",
+        "average": 0.174820857045002,
+        "min": 1.415525492473154e-07,
+        "max": 0.698637302868508
+    },
+    "Exterior 10mm Circle rms Mag_B": {
+        "data_type": "float64",
+        "average": 0.16184698532711958,
+        "min": 7.62646693494258e-08,
+        "max": 0.639759230820372
+    },
+    "Exterior 10mm Circle max Br": {
+        "data_type": "float64",
+        "average": 0.15834517087476527,
+        "min": 4.9345799140454e-09,
+        "max": 0.880885530985508
+    },
+    "Exterior 10mm Circle rms Br": {
+        "data_type": "float64",
+        "average": 0.11445460362596842,
+        "min": 5.16436394461234e-08,
+        "max": 0.452404675394644
+    },
+    "Exterior 15mm Circle max Mag_B": {
+        "data_type": "float64",
+        "average": 0.13832150677023086,
+        "min": 9.54254189768366e-08,
+        "max": 0.49858408087496
+    },
+    "Exterior 15mm Circle rms Mag_B": {
+        "data_type": "float64",
+        "average": 0.12992126606315182,
+        "min": 4.9773366890669e-08,
+        "max": 0.4688411619467
+    },
+    "Exterior 15mm Circle max Br": {
+        "data_type": "float64",
+        "average": 0.12821533053333184,
+        "min": -1.221204798670988e-09,
+        "max": 0.615445366259436
+    },
+    "Exterior 15mm Circle rms Br": {
+        "data_type": "float64",
+        "average": 0.09173503296743099,
+        "min": 3.60782248555696e-08,
+        "max": 0.330764733208602
+    },
+    "Exterior 20mm Circle max Mag_B": {
+        "data_type": "float64",
+        "average": 0.11184815361408663,
+        "min": 6.23788026279822e-08,
+        "max": 0.383691254143556
+    },
+    "Exterior 20mm Circle rms Mag_B": {
+        "data_type": "float64",
+        "average": 0.10553984142565385,
+        "min": 3.7900594555105e-08,
+        "max": 0.3468023025794732
+    },
+    "Exterior 20mm Circle max Br": {
+        "data_type": "float64",
+        "average": 0.1060577943668497,
+        "min": -1.978512836897202e-09,
+        "max": 0.723055715586752
+    },
+    "Exterior 20mm Circle rms Br": {
+        "data_type": "float64",
+        "average": 0.0746486547191551,
+        "min": 3.17088472328788e-08,
+        "max": 0.2452739397144164
+    },
+    "Exterior 25mm Circle max Mag_B": {
+        "data_type": "float64",
+        "average": 0.09221040646502107,
+        "min": 4.9426829235508e-08,
+        "max": 0.32330805191358
+    },
+    "Exterior 25mm Circle rms Mag_B": {
+        "data_type": "float64",
+        "average": 0.08689773269980933,
+        "min": 3.29874939859788e-08,
+        "max": 0.291712842508344
+    },
+    "Exterior 25mm Circle max Br": {
+        "data_type": "float64",
+        "average": 0.08832553165217906,
+        "min": 3.11663486656912e-09,
+        "max": 0.281383251357504
+    },
+    "Exterior 25mm Circle rms Br": {
+        "data_type": "float64",
+        "average": 0.06155065909252456,
+        "min": 2.4075357657948e-08,
+        "max": 0.206689421925702
+    },
+    "Exterior 5mm Circle max Mag_B": {
+        "data_type": "float64",
+        "average": 0.2415901771536239,
+        "min": 2.1698366388625e-07,
+        "max": 1.132548066943224
+    },
+    "Exterior 5mm Circle rms Mag_B": {
+        "data_type": "float64",
+        "average": 0.2067269932613103,
+        "min": 1.211225393406924e-07,
+        "max": 0.892723087880592
+    },
+    "Exterior 5mm Circle max Br": {
+        "data_type": "float64",
+        "average": 0.20675179940127372,
+        "min": 2.36834323098432e-08,
+        "max": 1.341498936780256
+    },
+    "Exterior 5mm Circle rms Br": {
+        "data_type": "float64",
+        "average": 0.14615167858796105,
+        "min": 9.21233641835794e-08,
+        "max": 0.63139653899
+    },
+    "Exterior 7mm Circle max Mag_B": {
+        "data_type": "float64",
+        "average": 0.2083005527625816,
+        "min": 1.799888338199206e-07,
+        "max": 0.875870152386492
+    },
+    "Exterior 7mm Circle rms Mag_B": {
+        "data_type": "float64",
+        "average": 0.18675222265196859,
+        "min": 1.00797705012133e-07,
+        "max": 0.779357245470584
+    },
+    "Exterior 7mm Circle max Br": {
+        "data_type": "float64",
+        "average": 0.18307620513491554,
+        "min": 1.6320063920929763e-08,
+        "max": 1.067425317286448
+    },
+    "Exterior 7mm Circle rms Br": {
+        "data_type": "float64",
+        "average": 0.1319872459775063,
+        "min": 7.27799954168694e-08,
+        "max": 0.55112430239484
+    },
+    "Exterior 30mm Circle max Mag_B": {
+        "data_type": "float64",
+        "average": 0.07760164387288182,
+        "min": 4.3669195830563e-08,
+        "max": 0.277515731161396
+    },
+    "Exterior 30mm Circle rms Mag_B": {
+        "data_type": "float64",
+        "average": 0.07281494581954888,
+        "min": 3.01521042037484e-08,
+        "max": 0.250893511300648
+    },
+    "Exterior 30mm Circle max Br": {
+        "data_type": "float64",
+        "average": 0.07459535209027733,
+        "min": 6.24583865251368e-10,
+        "max": 0.247008180734896
+    },
+    "Exterior 30mm Circle rms Br": {
+        "data_type": "float64",
+        "average": 0.05134455269878001,
+        "min": 2.1529035753572e-08,
+        "max": 0.1766690348399362
+    },
+    "Exterior 35mm Circle max Mag_B": {
+        "data_type": "float64",
+        "average": 0.06564967133453395,
+        "min": 3.90764718747794e-08,
+        "max": 0.236288028009226
+    },
+    "Exterior 35mm Circle rms Mag_B": {
+        "data_type": "float64",
+        "average": 0.06131690383826884,
+        "min": 2.79507235020894e-08,
+        "max": 0.21596370913026
+    },
+    "Exterior 35mm Circle max Br": {
+        "data_type": "float64",
+        "average": 0.06367134027796825,
+        "min": -2.64999450568088e-08,
+        "max": 0.212756379509364
+    },
+    "Exterior 35mm Circle rms Br": {
+        "data_type": "float64",
+        "average": 0.043170342831187,
+        "min": 1.970802120820302e-08,
+        "max": 0.1515317621804664
+    },
+    "Exterior 40mm Circle max Mag_B": {
+        "data_type": "float64",
+        "average": 0.05551495174300286,
+        "min": 3.42686049973056e-08,
+        "max": 0.1996120083748786
+    },
+    "Exterior 40mm Circle rms Mag_B": {
+        "data_type": "float64",
+        "average": 0.05194155797256535,
+        "min": 2.58154943559992e-08,
+        "max": 0.1856145419261068
+    },
+    "Exterior 40mm Circle max Br": {
+        "data_type": "float64",
+        "average": 0.054867362121006756,
+        "min": -1.132081177343252e-07,
+        "max": 0.1873543435806482
+    },
+    "Exterior 40mm Circle rms Br": {
+        "data_type": "float64",
+        "average": 0.036616418530770634,
+        "min": 1.81803655947373e-08,
+        "max": 0.1307707318250782
+    },
+    "Exterior 45mm Circle max Mag_B": {
+        "data_type": "float64",
+        "average": 0.047418668579693554,
+        "min": 3.01208122112066e-08,
+        "max": 0.1700707523028344
+    },
+    "Exterior 45mm Circle rms Mag_B": {
+        "data_type": "float64",
+        "average": 0.04404288616866267,
+        "min": 2.1983702459553442e-08,
+        "max": 0.160169576410494
+    },
+    "Exterior 45mm Circle max Br": {
+        "data_type": "float64",
+        "average": 0.04703197547920836,
+        "min": -1.5457841177760562e-08,
+        "max": 0.1669326649300642
+    },
+    "Exterior 45mm Circle rms Br": {
+        "data_type": "float64",
+        "average": 0.03132585554080059,
+        "min": 1.656645677217788e-08,
+        "max": 0.1137435607682458
+    },
+    "Exterior 50mm Circle max Mag_B": {
+        "data_type": "float64",
+        "average": 0.041045011740014806,
+        "min": 2.5386266207051922e-08,
+        "max": 0.1488967716520434
+    },
+    "Exterior 50mm Circle rms Mag_B": {
+        "data_type": "float64",
+        "average": 0.037940793526919286,
+        "min": 1.89665063080032e-08,
+        "max": 0.1399654457840074
+    },
+    "Exterior 50mm Circle max Br": {
+        "data_type": "float64",
+        "average": 0.0399619714672003,
+        "min": -6.27441497087452e-07,
+        "max": 0.147798284569714
+    },
+    "Exterior 50mm Circle rms Br": {
+        "data_type": "float64",
+        "average": 0.027019042348157687,
+        "min": 1.3125671335506321e-08,
+        "max": 0.099573498170354
+    },
+    "Mods1 Middle Circle max Mag_B": {
+        "data_type": "float64",
+        "average": 3.542706620858721,
+        "min": 0.377834909958732,
+        "max": 11.4540643447638
+    },
+    "Mods1 Middle Circle rms Mag_B": {
+        "data_type": "float64",
+        "average": 1.7101609326285065,
+        "min": 0.1707581220988084,
+        "max": 6.01282113625716
+    },
+    "Mods1 Middle Circle max Br": {
+        "data_type": "float64",
+        "average": 3.048114319090194,
+        "min": 0.363594450540368,
+        "max": 10.80000775333288
+    },
+    "Mods1 Middle Circle rms Br": {
+        "data_type": "float64",
+        "average": 1.1323355725660817,
+        "min": 0.1622931198098958,
+        "max": 4.55850242897252
+    },
+    "PM1 Middle Circle max Mag_B": {
+        "data_type": "float64",
+        "average": 2.196194746105124,
+        "min": 1.375833902247788,
+        "max": 6.55822338320244
+    },
+    "PM1 Middle Circle rms Mag_B": {
+        "data_type": "float64",
+        "average": 1.2794412908162818,
+        "min": 0.0,
+        "max": 5.27228600082476
+    },
+    "PM1 Middle Circle max Br": {
+        "data_type": "float64",
+        "average": 2.1518025400323735,
+        "min": 1.312729556244128,
+        "max": 6.20063994836872
+    },
+    "PM1 Middle Circle rms Br": {
+        "data_type": "float64",
+        "average": 1.261044843288692,
+        "min": 0.0,
+        "max": 5.2721920526146
+    },
+    "PM2 Middle Circle max Mag_B": {
+        "data_type": "float64",
+        "average": 3.6480582864072995,
+        "min": 2.26157764892068,
+        "max": 8.47683140091664
+    },
+    "PM2 Middle Circle rms Mag_B": {
+        "data_type": "float64",
+        "average": 2.3756387143493183,
+        "min": 0.0,
+        "max": 5.78720307654668
+    },
+    "PM2 Middle Circle max Br": {
+        "data_type": "float64",
+        "average": 3.607298257461903,
+        "min": 2.1445617231064,
+        "max": 8.98607025278824
+    },
+    "PM2 Middle Circle rms Br": {
+        "data_type": "float64",
+        "average": 2.3442667542749933,
+        "min": 0.0,
+        "max": 5.77401672549168
+    },
+    "R1 Circle max Mag_B": {
+        "data_type": "float64",
+        "average": 3.7402090940545594,
+        "min": 0.0025728227605844,
+        "max": 16.99755622459632
+    },
+    "R1 Circle rms Mag_B": {
+        "data_type": "float64",
+        "average": 2.6746599781772726,
+        "min": 0.0012479894018708,
+        "max": 10.53889543337392
+    },
+    "R1 Circle max Br": {
+        "data_type": "float64",
+        "average": 0.31305291073849684,
+        "min": 8.19132381043924e-05,
+        "max": 9.34382576653564
+    },
+    "R1 Circle rms Br": {
+        "data_type": "float64",
+        "average": 0.11248672790693717,
+        "min": 2.00187678798352e-05,
+        "max": 2.133189457017532
+    },
+    "R2 Circle max Mag_B": {
+        "data_type": "float64",
+        "average": 2.756412712944678,
+        "min": 1.322002244866386,
+        "max": 20.77858061111984
+    },
+    "R2 Circle rms Mag_B": {
+        "data_type": "float64",
+        "average": 1.3525529194296764,
+        "min": 0.42574182615761,
+        "max": 5.8836700262376
+    },
+    "R2 Circle max Br": {
+        "data_type": "float64",
+        "average": 2.1061392415324387,
+        "min": 0.994342248912558,
+        "max": 6.21474010516472
+    },
+    "R2 Circle rms Br": {
+        "data_type": "float64",
+        "average": 1.3456903924005708,
+        "min": 0.3853952373267,
+        "max": 5.89186068216796
+    },
+    "R3 Circle max Mag_B": {
+        "data_type": "float64",
+        "average": 2.2023036165317302,
+        "min": 0.988948440238834,
+        "max": 11.36980525273068
+    },
+    "R3 Circle rms Mag_B": {
+        "data_type": "float64",
+        "average": 1.1651709351585648,
+        "min": 0.0,
+        "max": 3.946497208415708
+    },
+    "R3 Circle max Br": {
+        "data_type": "float64",
+        "average": 1.7919938096624741,
+        "min": 0.80004778432958,
+        "max": 5.63915076055144
+    },
+    "R3 Circle rms Br": {
+        "data_type": "float64",
+        "average": 1.0454498877416718,
+        "min": 0.0,
+        "max": 3.703901791016144
+    },
+    "R4 Circle max Mag_B": {
+        "data_type": "float64",
+        "average": 4.819854879753696,
+        "min": 1.271376167266054,
+        "max": 13.548169172158
+    },
+    "R4 Circle rms Mag_B": {
+        "data_type": "float64",
+        "average": 1.8895805972186015,
+        "min": 0.396735924475346,
+        "max": 6.30395607184556
+    },
+    "R4 Circle max Br": {
+        "data_type": "float64",
+        "average": 3.490965363793284,
+        "min": 1.003253084910214,
+        "max": 10.8440536920236
+    },
+    "R4 Circle rms Br": {
+        "data_type": "float64",
+        "average": 1.1085465368185443,
+        "min": 0.302391342210276,
+        "max": 3.799221055446604
+    },
+    "R5 Circle max Mag_B": {
+        "data_type": "float64",
+        "average": 3.4916396471631943,
+        "min": 0.26684212026582,
+        "max": 11.360082124909
+    },
+    "R5 Circle rms Mag_B": {
+        "data_type": "float64",
+        "average": 1.2888125692498247,
+        "min": 0.0865328287410674,
+        "max": 3.834124525453092
+    },
+    "R5 Circle max Br": {
+        "data_type": "float64",
+        "average": 4.007315255115371,
+        "min": 0.3174760332548,
+        "max": 11.25945900644668
+    },
+    "R5 Circle rms Br": {
+        "data_type": "float64",
+        "average": 1.1602680051214673,
+        "min": 0.0704132025663432,
+        "max": 3.580365621253656
+    },
+    "R6 Circle max Mag_B": {
+        "data_type": "float64",
+        "average": 3.3577966101125085,
+        "min": 1.613938361538992,
+        "max": 11.33192157642948
+    },
+    "R6 Circle rms Mag_B": {
+        "data_type": "float64",
+        "average": 1.8878906858764937,
+        "min": 0.506714151024878,
+        "max": 4.4122980300974
+    },
+    "R6 Circle max Br": {
+        "data_type": "float64",
+        "average": 2.7873787397942307,
+        "min": 1.369278425782214,
+        "max": 7.12784940631388
+    },
+    "R6 Circle rms Br": {
+        "data_type": "float64",
+        "average": 1.5627046891678917,
+        "min": 0.390981430661306,
+        "max": 4.2119348675078
+    },
+    "R7 Circle max Mag_B": {
+        "data_type": "float64",
+        "average": 6.472677276239402,
+        "min": 3.01890132355706,
+        "max": 21.14406545099532
+    },
+    "R7 Circle rms Mag_B": {
+        "data_type": "float64",
+        "average": 4.056438719921058,
+        "min": 1.028561879455828,
+        "max": 9.45663809774448
+    },
+    "R7 Circle max Br": {
+        "data_type": "float64",
+        "average": 3.6475151233537977,
+        "min": 1.820284364301752,
+        "max": 11.77290229471636
+    },
+    "R7 Circle rms Br": {
+        "data_type": "float64",
+        "average": 2.2778851643512166,
+        "min": 0.790560322841794,
+        "max": 5.93164898371732
+    },
+    "R8 Circle max Mag_B": {
+        "data_type": "float64",
+        "average": 3.2665968998237616,
+        "min": 3.2814802719647e-07,
+        "max": 11.15954789027604
+    },
+    "R8 Circle rms Mag_B": {
+        "data_type": "float64",
+        "average": 0.40959516306036786,
+        "min": 1.861754130397162e-07,
+        "max": 1.879233908862708
+    },
+    "R8 Circle max Br": {
+        "data_type": "float64",
+        "average": 0.66296906467861,
+        "min": 3.70962017693892e-08,
+        "max": 9.07463312133864
+    },
+    "R8 Circle rms Br": {
+        "data_type": "float64",
+        "average": 0.2801865938461225,
+        "min": 1.542647397095466e-07,
+        "max": 1.349382993850416
+    }
+}
