@@ -229,16 +229,19 @@ data_summary = {}  # Store feature and target type information
 def download_file_from_github(model_type, model_version, filename):
     """Download a file from GitHub and check if it exists."""
     
-    url = f"{GITHUB_REPO_URL}/{model_type}/{model_version}/{filename}"
+    # Encode spaces in model type names for correct GitHub URL
+    model_type_encoded = model_type.replace(" ", "%20")  
+
+    url = f"{GITHUB_REPO_URL}/{model_type_encoded}/{model_version}/{filename}"
     
     print(f"🔗 Attempting to download: {url}")  # Debugging
     response = requests.get(url)
 
     if response.status_code == 200:
-        print(f"✅ Successfully downloaded {filename} for {model_folder}")
+        print(f"✅ Successfully downloaded {filename} for {model_type} {model_version}")  # ✅ FIXED
         return response.content
     else:
-        print(f"⚠️ Warning: Could not download {filename} for {model_folder}")
+        print(f"⚠️ Warning: Could not download {filename} for {model_type} {model_version}")  # ✅ FIXED
         return None
 
 def load_models():
@@ -252,9 +255,9 @@ def load_models():
 
         try:
             # Dynamically determine filenames
-            feature_file = f"features{model_version.replace('.', '')}.json"
-            metrics_file = f"performance_metrics{model_version.replace('.', '')}.json"
-            model_file = f"tuned_multi_output_model{model_version.replace('.', '')}.pkl"
+            feature_file = f"features{model_version}.json"
+            metrics_file = f"performance_metrics{model_version}.json"
+            model_file = f"tuned_multi_output_model{model_version}.pkl"
 
             # ✅ Pass model_type and version separately
             model_content = download_file_from_github(model_type, model_version, model_file)
@@ -380,6 +383,7 @@ def predict(input_data: PredictionInput):
 
 if __name__ == "__main__":
     uvicorn.run(app, host="127.0.0.1", port=5555)
+
 
 
 
