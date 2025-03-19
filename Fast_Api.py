@@ -23,12 +23,12 @@ app.add_middleware(
 
 # Define model structure (List format)
 MODELS = [
-    {"model_type": "Random Forest 1", "version": "1.0"},
-    {"model_type": "Random Forest 2", "version": "2.0"},
-    {"model_type": "Gradient Boosting 1", "version": "1.0"},
-    {"model_type": "Gradient Boosting 2", "version": "2.0"},
-    {"model_type": "Gauss Process Regression 1", "version": "1.0"},
-    {"model_type": "Gauss Process Regression 2", "version": "2.0"}
+    {"model_type": "Random Forest", "version": "1.0"},
+    {"model_type": "Random Forest", "version": "2.0"},
+    {"model_type": "Gradient Boosting", "version": "1.0"},
+    {"model_type": "Gradient Boosting", "version": "2.0"},
+    {"model_type": "Gauss Process Regression", "version": "1.0"},
+    {"model_type": "Gauss Process Regression", "version": "2.0"}
 ]
 
 # GitHub repository details (CHANGE URL TO MATCH YOUR REPO)
