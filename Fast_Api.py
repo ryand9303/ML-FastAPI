@@ -102,7 +102,7 @@ def get_available_models():
     """Returns a list of available models with their versions and availability status."""
     return [{"model": model["model_type"], "version": model["version"], "available": model_availability.get(model["model_type"], False)} for model in MODELS]
 
-@app.get("/getModelFeatures/{model_id}")
+@app.get("/getModelFeatures/{model_id}{version}")
 def get_model_features(model_id: str):
     """Returns the features for a specific model."""
     if model_id not in models:
