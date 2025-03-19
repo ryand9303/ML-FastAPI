@@ -4,3 +4,4 @@ pydantic
 numpy
 plotly
 pandas
+requests
