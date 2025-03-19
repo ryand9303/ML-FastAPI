@@ -1,376 +1,156 @@
-# from fastapi import FastAPI, HTTPException
-# from pydantic import BaseModel
-# from typing import Dict
-# import pickle
-# import json
-# import numpy as np
-# import uvicorn
-
-# app = FastAPI()
-
-# # Load models and performance metrics
-# MODEL_PATHS = {
-#     "model_1": "tuned_multi_output_model.pkl",
-#     "model_2": "tuned_random_forest_model.pkl"
-# }
-
-# METRICS_PATHS = {
-#     "model_1": "performance_metrics.json",
-#     #"model_2": "path_to_metrics_2.json"
-# }
-
-# # Load models and metrics
-# models = {}
-# metrics = {}
-
-# for key, path in MODEL_PATHS.items():
-#     try:
-#         with open(path, "rb") as model_file:
-#             models[key] = pickle.load(model_file)
-#     except Exception as e:
-#         print(f"Error loading {key}: {e}")
-
-# for key, path in METRICS_PATHS.items():
-#     try:
-#         with open(path, "r") as metrics_file:
-#             metrics[key] = json.load(metrics_file)
-#     except Exception as e:
-#         print(f"Error loading metrics for {key}: {e}")
-
-# FEATURES = [
-#     'PM1_P', 'PM2_P', 'Mods1_Q', 'T1', 'T2', 'T3', 'T4', 'T4b',
-#     'Mods1_Bridge_Position', 'T5', 'T6', 'T7', 'R8', 'PM1_Alpha', 'PM2_Alpha',
-#     'Mods1_Inner_Alpha', 'k_Mods1_Alpha', 'PM1_EM_Theta0', 'PM2_EM_Theta0'
-# ]
-
-# TARGETS = ['Rotor1_Torque.Torque', 'Rotor2_Torque.Torque', 'Mods1_Torque.Torque']
-
-# class PredictionInput(BaseModel):
-#     model_id: str
-#     features: Dict[str, float]  # Expecting a dictionary of feature names and values
-
-# @app.get("/")
-# def home():
-#     return {"message": "Hello, World!"}
-
-# @app.post("/predictGearBox")
-# def predict_gearbox(input_data: PredictionInput):
-#     if input_data.model_id not in models:
-#         raise HTTPException(status_code=400, detail="Invalid model_id")
-
-#     # Extract feature values in the correct order
-#     try:
-#         input_values = [input_data.features[feat] for feat in FEATURES]
-#     except KeyError as e:
-#         raise HTTPException(status_code=400, detail=f"Missing feature: {e}")
-
-#     # Convert to NumPy array and reshape for the model
-#     input_array = np.array(input_values).reshape(1, -1)
-
-#     # Make predictions
-#     model = models[input_data.model_id]
-#     predictions = model.predict(input_array)
-
-#     # Format output
-#     result = {target: pred for target, pred in zip(TARGETS, predictions[0])}
-
-#     return {
-#         "model_id": input_data.model_id,
-#         "predictions": result
-#     }
-
-# @app.get("/getPerformanceMetrics/{model_id}")
-# def get_performance_metrics(model_id: str):
-#     if model_id not in metrics:
-#         raise HTTPException(status_code=400, detail="Invalid model_id")
-
-#     return metrics[model_id]
-
-# if __name__ == "__main__":
-#   uvicorn.run(app, host="127.0.0.1", port=5555)
-
 from fastapi import FastAPI, HTTPException
-
 from pydantic import BaseModel
-
-from typing import Dict, List
-
+from typing import Dict
 import pickle
-
 import numpy as np
 import os
-
 import json
-
 import uvicorn
-
-import plotly.express as px
-
-import plotly.io as pio
+import requests  # To download files from GitHub
 import pandas as pd
 from fastapi.middleware.cors import CORSMiddleware
 
-
+# FastAPI Setup
 app = FastAPI()
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["https://revmagneticgearml.com"],  # For production, specify allowed origins
+    allow_origins=["https://revmagneticgearml.com"],  
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# Define your six model types with their names, types, and versions
-
+# Define model structure (List format)
 MODELS = [
-
     {"model_type": "Random Forest 1", "version": "1.0"},
-
     {"model_type": "Random Forest 2", "version": "2.0"},
-
     {"model_type": "Gradient Boosting 1", "version": "1.0"},
-
     {"model_type": "Gradient Boosting 2", "version": "2.0"},
-
     {"model_type": "Gauss Process Regression 1", "version": "1.0"},
-
-    {"model_type": "Gauss Process Regression 2", "version": "2.0"},
-
+    {"model_type": "Gauss Process Regression 2", "version": "2.0"}
 ]
 
+# GitHub repository details (CHANGE URL TO MATCH YOUR REPO)
+GITHUB_REPO_URL = "https://raw.githubusercontent.com/ryand9303/ML-FastAPI/main"
 
-# Base directory for the models
-
-BASE_MODEL_DIR = "/content/drive/Shared drives/Capstone REV Group/404 MODEL Files/CAPstone"  # Parent directory containing model folders
-
-
-# Load all models from the directory
-
+# Store models in memory
 models = {}
+model_availability = {}  # Dictionary to store model availability status
 
+def download_file_from_github(model_folder, filename):
+    """Download a file from GitHub and check if it exists."""
+    url = f"{GITHUB_REPO_URL}/{model_folder}/{filename}"
+    response = requests.get(url)
+
+    if response.status_code == 200:
+        return response.content
+    else:
+        print(f"⚠️ Warning: Could not download {filename} for {model_folder}")
+        return None
 
 def load_models():
-
-    """Load all models from the specified directory."""
-
+    """Download and load models from GitHub dynamically, checking availability."""
     for model in MODELS:
-        model_type = model["model_type"]
-
-        model_dir = os.path.join(BASE_MODEL_DIR, model_type)
-
-
-        # Ensure the model directory exists
-
-        if not os.path.exists(model_dir):
-
-            print(f"Warning: The directory '{model_dir}' does not exist. Skipping model.")
-            continue
-        
+        model_folder = model["model_type"]
+        model_version = model["version"]
 
         try:
+            # Dynamically determine filenames based on model type
+            feature_file = f"features{model_version.replace('.', '')}.json"
+            metrics_file = f"performance_metrics{model_version.replace('.', '')}.json"
+            model_file = f"tuned_multi_output_model{model_version.replace('.', '')}.pkl"
 
-            # Load the model and output model
+            # Check availability of all required files
+            model_content = download_file_from_github(model_folder, model_file)
+            features_content = download_file_from_github(model_folder, feature_file)
+            metrics_content = download_file_from_github(model_folder, metrics_file)
 
-            model_file = os.path.join(model_dir, f"{model_type}.pkl")
+            if not all([model_content, features_content, metrics_content]):
+                print(f"⚠️ Model {model_folder} is missing files and will be marked as unavailable.")
+                model_availability[model_folder] = False
+                continue  # Skip loading this model
 
-            output_model_file = os.path.join(model_dir, f"{model_type}_output.pkl")
+            # Deserialize files if available
+            model_obj = pickle.loads(model_content)
+            features = json.loads(features_content)
+            performance_metrics = json.loads(metrics_content)
 
-            with open(model_file, "rb") as f:
+            # Store model in dictionary
+            models[model_folder] = {
+                "model": model_obj,
+                "features": features,
+                "performance_metrics": performance_metrics,
+            }
 
-                models[model_type] = {
-
-                    "model": pickle.load(f),
-
-                    "output_model": pickle.load(open(output_model_file, "rb")),
-
-                    "features": {},
-
-                    "performance_metrics": {}
-
-                }
-
-
-            # Load features from JSON
-
-            features_file = os.path.join(model_dir, f"{model_type}_features.json")
-
-            if os.path.exists(features_file):
-
-                with open(features_file, "r") as f:
-
-                    models[model_type]["features"] = json.load(f)
-
-
-            # Load performance metrics from JSON
-
-            metrics_file = os.path.join(model_dir, f"{model_type}_performance.json")
-
-            if os.path.exists(metrics_file):
-
-                with open(metrics_file, "r") as f:
-
-                    models[model_type]["performance_metrics"] = json.load(f)
-
+            model_availability[model_folder] = True  # Mark model as available
+            print(f"✅ Loaded {model_folder} successfully!")
 
         except Exception as e:
+            print(f"❌ Error loading {model_folder}: {e}")
+            model_availability[model_folder] = False  # Mark model as unavailable
 
-            print(f"Error loading model {model_type}: {e}")
-
-
-load_models()  # Load the models at startup
-
-@app.get("/test")
-def test_connection():
-    return {"message": "FastAPI is connected and working!"}
-
+# Load models at startup
+load_models()
 
 @app.get("/")
-
 def home():
-
     return {"message": "Machine Learning API is running!", "Available Models": get_available_models()}
-    #return{"Available Models": get_available_models()}
-
 
 @app.get("/getAvailableModels")
-
 def get_available_models():
-
-    """Returns a list of available models."""
-
-    return MODELS
-
+    """Returns a list of available models with their versions and availability status."""
+    return [{"model": model["model_type"], "version": model["version"], "available": model_availability.get(model["model_type"], False)} for model in MODELS]
 
 @app.get("/getModelFeatures/{model_id}")
-
 def get_model_features(model_id: str):
-
     """Returns the features for a specific model."""
-
     if model_id not in models:
-
-        raise HTTPException(status_code=404, detail="Model not found")
-    
-
+        raise HTTPException(status_code=404, detail="Model not found or unavailable")
     return models[model_id]["features"]
 
-
 @app.get("/getModelPerformanceMetrics/{model_id}")
-
 def get_model_performance_metrics(model_id: str):
-
     """Returns the performance metrics for a specific model."""
-
     if model_id not in models:
-
-        raise HTTPException(status_code=404, detail="Model not found")
-    
-
+        raise HTTPException(status_code=404, detail="Model not found or unavailable")
     return models[model_id]["performance_metrics"]
 
-
+# Define prediction input format
 class PredictionInput(BaseModel):
-
     model_id: str
-
     features: Dict[str, float]
 
-
 @app.post("/predict")
-
 def predict(input_data: PredictionInput):
-    """
-
-    Takes a model_id and feature values, runs prediction, and returns target values.
-    """
+    """Takes a model_id and feature values, runs prediction, and returns target values."""
     model_id = input_data.model_id
     features = input_data.features
 
-
     if model_id not in models:
-
-        raise HTTPException(status_code=404, detail="Model not found")
-
+        raise HTTPException(status_code=404, detail="Model not found or unavailable")
 
     # Ensure all required features are provided
-
-    # Ensure all required features are provided
-
-    missing_features = [f for f in models[model_id]["features"].get("features", []) if f not in features]
+    required_features = models[model_id]["features"].get("features", [])
+    missing_features = [f for f in required_features if f not in features]
 
     if missing_features:
-
         raise HTTPException(status_code=400, detail=f"Missing features: {missing_features}")
 
-
     # Convert input features to NumPy array
+    feature_array = np.array([features[f] for f in required_features]).reshape(1, -1)
 
-    feature_array = np.array([features[f] for f in models[model_id]["features"].get("features", [])]).reshape(1, -1)
-
-
-    # Get the model and predict
-
+    # Get model and predict
     model = models[model_id]["model"]
-
     prediction = model.predict(feature_array)
 
-
-    # Ensure output format matches the expected targets (assumes targets are the same across all models)
-
+    # Ensure output format matches expected targets
     targets = models[model_id]["features"].get("targets", [])
-
-    if len(prediction) != len(targets):
-
+    if len(prediction[0]) != len(targets):
         raise HTTPException(status_code=500, detail="Model output does not match expected targets.")
 
-
     # Return predictions as JSON
-
-    return {targets[i]: prediction[i] for i in range(len(targets))}
-
-
-@app.get("/getPlot")
-
-def get_plot(plot_type: str, variable: str):
-
-    # Ensure dataset.csv is available
-
-    df = pd.read_csv("dataset.csv")  
-    
-
-    if variable not in df.columns:
-
-        raise HTTPException(status_code=400, detail="Invalid variable")
-    
-
-    if plot_type == "histogram":
-
-        fig = px.histogram(df, x=variable)
-
-    elif plot_type == "correlation":
-
-        fig = px.imshow(df.corr(), text_auto=True)
-
-    elif plot_type == "violin":
-
-        fig = px.violin(df, y=variable, box=True, points="all")
-
-    else:
-
-        raise HTTPException(status_code=400, detail="Invalid plot type")
-    
-
-    plot_path = f"plots/{plot_type}_{variable}.html"
-
-    os.makedirs('plots', exist_ok=True)  # Ensure the plots directory exists
-
-    pio.write_html(fig, file=plot_path)
-    
-
-    return {"plot_url": plot_path}
-
+    return {targets[i]: prediction[0][i] for i in range(len(targets))}
 
 if __name__ == "__main__":
-
     uvicorn.run(app, host="127.0.0.1", port=5555)
