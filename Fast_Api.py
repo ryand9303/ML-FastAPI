@@ -208,7 +208,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Define model structure (List format) - Now uniquely identifying models with type + version
+# Define model structure (List format) - Uniquely identifying models with type + version
 MODELS = [
     {"model_type": "Random Forest", "version": "1.0"},
     {"model_type": "Random Forest", "version": "2.0"},
@@ -224,13 +224,18 @@ GITHUB_REPO_URL = "https://raw.githubusercontent.com/ryand9303/ML-FastAPI/main"
 # Store models in memory
 models = {}
 model_availability = {}  # Dictionary to store model availability status
+data_summary = {}  # Store feature and target type information
 
 def download_file_from_github(model_folder, filename):
     """Download a file from GitHub and check if it exists."""
+    model_folder = model_folder.replace(" ", "_")  # Handle spaces in model names
     url = f"{GITHUB_REPO_URL}/{model_folder}/{filename}"
+    
+    print(f"🔗 Attempting to download: {url}")  # Debugging
     response = requests.get(url)
 
     if response.status_code == 200:
+        print(f"✅ Successfully downloaded {filename} for {model_folder}")
         return response.content
     else:
         print(f"⚠️ Warning: Could not download {filename} for {model_folder}")
@@ -243,6 +248,8 @@ def load_models():
         model_version = model["version"]
         model_key = f"{model_type} {model_version}"  # Unique identifier: Type + Version
 
+        print(f"🔄 Checking model {model_key} ...")  # Debugging
+
         try:
             # Dynamically determine filenames based on model type and version
             feature_file = f"features{model_version.replace('.', '')}.json"
@@ -254,13 +261,19 @@ def load_models():
             features_content = download_file_from_github(model_key, feature_file)
             metrics_content = download_file_from_github(model_key, metrics_file)
 
+            # Check if files exist before proceeding
             if not all([model_content, features_content, metrics_content]):
                 print(f"⚠️ Model {model_key} is missing files and will be marked as unavailable.")
                 model_availability[model_key] = False
                 continue  # Skip loading this model
 
-            # Deserialize files if available
-            model_obj = pickle.loads(model_content)
+            # Deserialize files safely
+            try:
+                model_obj = pickle.loads(model_content)
+            except pickle.UnpicklingError as e:
+                print(f"❌ Error unpickling {model_key}: {e}")
+                continue  # Skip this model
+
             features = json.loads(features_content)
             performance_metrics = json.loads(metrics_content)
 
@@ -269,6 +282,12 @@ def load_models():
                 "model": model_obj,
                 "features": features,
                 "performance_metrics": performance_metrics,
+            }
+
+            # Store feature and target details for the `getDataSummary` function
+            data_summary[model_key] = {
+                "features": features.get("features", []),
+                "targets": features.get("targets", [])
             }
 
             model_availability[model_key] = True  # Mark model as available
@@ -310,6 +329,11 @@ def get_model_performance_metrics(model_type: str, version: str):
     
     return models[model_key]["performance_metrics"]
 
+@app.get("/getDataSummary")
+def get_data_summary():
+    """Returns a summary of all features and targets available across models."""
+    return data_summary
+
 # Define prediction input format
 class PredictionInput(BaseModel):
     model_type: str
@@ -339,15 +363,22 @@ def predict(input_data: PredictionInput):
     model = models[model_key]["model"]
     prediction = model.predict(feature_array)
 
+    print(f"🔎 Model Prediction: {prediction}")  # Debugging
+
     # Ensure output format matches expected targets
     targets = models[model_key]["features"].get("targets", [])
-    if len(prediction[0]) != len(targets):
-        raise HTTPException(status_code=500, detail="Model output does not match expected targets.")
+    
+    if not isinstance(prediction, (list, np.ndarray)):
+        prediction = [prediction]  # Convert scalar to list
+    
+    if len(prediction) != len(targets):
+        raise HTTPException(status_code=500, detail=f"Model output does not match expected targets. Output: {prediction}")
 
     # Return predictions as JSON
-    return {targets[i]: prediction[0][i] for i in range(len(targets))}
+    return {targets[i]: prediction[i] for i in range(len(targets))}
 
 if __name__ == "__main__":
     uvicorn.run(app, host="127.0.0.1", port=5555)
+
 
 
