@@ -21,7 +21,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Define model structure (List format)
+# Define model structure (List format) - Now uniquely identifying models with type + version
 MODELS = [
     {"model_type": "Random Forest", "version": "1.0"},
     {"model_type": "Random Forest", "version": "2.0"},
@@ -52,8 +52,9 @@ def download_file_from_github(model_folder, filename):
 def load_models():
     """Download and load models from GitHub dynamically, checking availability."""
     for model in MODELS:
-        model_folder = f"{model['model_type']} {model['version']}"  # Unique identifier: Type + Version
+        model_type = model["model_type"]
         model_version = model["version"]
+        model_key = f"{model_type} {model_version}"  # Unique identifier: Type + Version
 
         try:
             # Dynamically determine filenames based on model type and version
@@ -62,13 +63,13 @@ def load_models():
             model_file = f"tuned_multi_output_model{model_version.replace('.', '')}.pkl"
 
             # Check availability of all required files
-            model_content = download_file_from_github(model_folder, model_file)
-            features_content = download_file_from_github(model_folder, feature_file)
-            metrics_content = download_file_from_github(model_folder, metrics_file)
+            model_content = download_file_from_github(model_key, model_file)
+            features_content = download_file_from_github(model_key, feature_file)
+            metrics_content = download_file_from_github(model_key, metrics_file)
 
             if not all([model_content, features_content, metrics_content]):
-                print(f"⚠️ Model {model_folder} is missing files and will be marked as unavailable.")
-                model_availability[model_folder] = False
+                print(f"⚠️ Model {model_key} is missing files and will be marked as unavailable.")
+                model_availability[model_key] = False
                 continue  # Skip loading this model
 
             # Deserialize files if available
@@ -77,18 +78,18 @@ def load_models():
             performance_metrics = json.loads(metrics_content)
 
             # Store model in dictionary with unique identifier
-            models[model_folder] = {
+            models[model_key] = {
                 "model": model_obj,
                 "features": features,
                 "performance_metrics": performance_metrics,
             }
 
-            model_availability[model_folder] = True  # Mark model as available
-            print(f"✅ Loaded {model_folder} successfully!")
+            model_availability[model_key] = True  # Mark model as available
+            print(f"✅ Loaded {model_key} successfully!")
 
         except Exception as e:
-            print(f"❌ Error loading {model_folder}: {e}")
-            model_availability[model_folder] = False  # Mark model as unavailable
+            print(f"❌ Error loading {model_key}: {e}")
+            model_availability[model_key] = False  # Mark model as unavailable
 
 # Load models at startup
 load_models()
@@ -100,38 +101,45 @@ def home():
 @app.get("/getAvailableModels")
 def get_available_models():
     """Returns a list of available models with their versions and availability status."""
-    return [{"model": f"{model['model_type']} {model['version']}", "available": model_availability.get(f"{model['model_type']} {model['version']}", False)} for model in MODELS]
+    return [{"model_type": model["model_type"], "version": model["version"], "available": model_availability.get(f"{model['model_type']} {model['version']}", False)} for model in MODELS]
 
-@app.get("/getModelFeatures/{model_id}")
-def get_model_features(model_id: str):
-    """Returns the features for a specific model."""
-    if model_id not in models:
+@app.get("/getModelFeatures/{model_type}/{version}")
+def get_model_features(model_type: str, version: str):
+    """Returns the features for a specific model (requires type and version)."""
+    model_key = f"{model_type} {version}"
+    
+    if model_key not in models:
         raise HTTPException(status_code=404, detail="Model not found or unavailable")
-    return models[model_id]["features"]
+    
+    return models[model_key]["features"]
 
-@app.get("/getModelPerformanceMetrics/{model_id}")
-def get_model_performance_metrics(model_id: str):
-    """Returns the performance metrics for a specific model."""
-    if model_id not in models:
+@app.get("/getModelPerformanceMetrics/{model_type}/{version}")
+def get_model_performance_metrics(model_type: str, version: str):
+    """Returns the performance metrics for a specific model (requires type and version)."""
+    model_key = f"{model_type} {version}"
+    
+    if model_key not in models:
         raise HTTPException(status_code=404, detail="Model not found or unavailable")
-    return models[model_id]["performance_metrics"]
+    
+    return models[model_key]["performance_metrics"]
 
 # Define prediction input format
 class PredictionInput(BaseModel):
-    model_id: str
+    model_type: str
+    version: str
     features: Dict[str, float]
 
 @app.post("/predict")
 def predict(input_data: PredictionInput):
-    """Takes a model_id and feature values, runs prediction, and returns target values."""
-    model_id = input_data.model_id
+    """Takes a model_type, version, and feature values, runs prediction, and returns target values."""
+    model_key = f"{input_data.model_type} {input_data.version}"
     features = input_data.features
 
-    if model_id not in models:
+    if model_key not in models:
         raise HTTPException(status_code=404, detail="Model not found or unavailable")
 
     # Ensure all required features are provided
-    required_features = models[model_id]["features"].get("features", [])
+    required_features = models[model_key]["features"].get("features", [])
     missing_features = [f for f in required_features if f not in features]
 
     if missing_features:
@@ -141,11 +149,11 @@ def predict(input_data: PredictionInput):
     feature_array = np.array([features[f] for f in required_features]).reshape(1, -1)
 
     # Get model and predict
-    model = models[model_id]["model"]
+    model = models[model_key]["model"]
     prediction = model.predict(feature_array)
 
     # Ensure output format matches expected targets
-    targets = models[model_id]["features"].get("targets", [])
+    targets = models[model_key]["features"].get("targets", [])
     if len(prediction[0]) != len(targets):
         raise HTTPException(status_code=500, detail="Model output does not match expected targets.")
 
@@ -154,4 +162,5 @@ def predict(input_data: PredictionInput):
 
 if __name__ == "__main__":
     uvicorn.run(app, host="127.0.0.1", port=5555)
+
 
