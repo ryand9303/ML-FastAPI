@@ -214,11 +214,9 @@ MODELS = [
     {"model_type": "Random Forest", "version": "2.0"},
     {"model_type": "Gradient Boosting", "version": "1.0"},
     {"model_type": "Gradient Boosting", "version": "2.0"}
-    #{"model_type": "Gauss Process Regression", "version": "1.0"},
-    #{"model_type": "Gauss Process Regression", "version": "2.0"}
 ]
 
-# GitHub repository details (CHANGE URL TO MATCH YOUR REPO)
+# GitHub repository details
 GITHUB_REPO_URL = "https://raw.githubusercontent.com/ryand9303/ML-FastAPI/main/Models"
 
 # Store models in memory
@@ -229,19 +227,24 @@ data_summary = {}  # Store feature and target type information
 def download_file_from_github(model_type, model_version, filename):
     """Download a file from GitHub and check if it exists."""
     
-    # Encode spaces in model type names for correct GitHub URL
-    #model_type_encoded = model_type.replace(" ", "%20")  
-
     url = f"{GITHUB_REPO_URL}/{model_type}/{model_version}/{filename}"
     
-    print(f"🔗 Attempting to download: {url}")  # Debugging
+    print(f"🔗 Attempting to download: {url}")  
     response = requests.get(url)
 
-    if response.status_code == 200:
-        print(f"✅ Successfully downloaded {filename} for {model_type} {model_version}")  # ✅ FIXED
+    if response.status_code == 200 and "text/html" not in response.headers.get("Content-Type", ""):
+        print(f"✅ Successfully downloaded {filename} for {model_type} {model_version}")  
         return response.content
     else:
-        print(f"⚠️ Warning: Could not download {filename} for {model_type} {model_version}")  # ✅ FIXED
+        print(f"⚠️ Warning: Could not download {filename} for {model_type} {model_version} (Status: {response.status_code})")  
+        return None
+
+def validate_pickle_file(file_content):
+    """Check if the downloaded file is a valid pickle file."""
+    try:
+        return pickle.loads(file_content)
+    except (pickle.UnpicklingError, TypeError, EOFError) as e:
+        print(f"❌ Pickle validation failed: {e}")
         return None
 
 def load_models():
@@ -251,7 +254,7 @@ def load_models():
         model_version = model["version"]
         model_key = f"{model_type} {model_version}"  # Unique identifier
 
-        print(f"🔄 Checking model {model_key} ...")  # Debugging
+        print(f"🔄 Checking model {model_key} ...")  
 
         try:
             # Dynamically determine filenames
@@ -259,7 +262,7 @@ def load_models():
             metrics_file = f"performance_metrics{model_version}.json"
             model_file = f"tuned_multi_output_model{model_version}.pkl"
 
-            # ✅ Pass model_type and version separately
+            # ✅ Download files
             model_content = download_file_from_github(model_type, model_version, model_file)
             features_content = download_file_from_github(model_type, model_version, feature_file)
             metrics_content = download_file_from_github(model_type, model_version, metrics_file)
@@ -270,14 +273,14 @@ def load_models():
                 model_availability[model_key] = False
                 continue
 
-            # Deserialize files
+            # Validate pickle file before loading
             print(f"📦 Unpacking model {model_key}")
-            try:
-                model_obj = pickle.loads(model_content)
-            except pickle.UnpicklingError as e:
-                print(f"❌ Unpickling failed for {model_key}: {e}")
+            model_obj = validate_pickle_file(model_content)
+            if model_obj is None:
+                print(f"❌ Unpickling failed for {model_key}. Skipping.")
                 continue
 
+            # Load JSON files
             features = json.loads(features_content)
             performance_metrics = json.loads(metrics_content)
 
@@ -299,7 +302,7 @@ def load_models():
 
         except Exception as e:
             print(f"❌ Error loading {model_key}: {e}")
-            model_availability[model_key] = False  # Mark as unavailable
+            model_availability[model_key] = False  
 
 # Load models at startup
 load_models()
@@ -367,7 +370,7 @@ def predict(input_data: PredictionInput):
     model = models[model_key]["model"]
     prediction = model.predict(feature_array)
 
-    print(f"🔎 Model Prediction: {prediction}")  # Debugging
+    print(f"🔎 Model Prediction: {prediction}")  
 
     # Ensure output format matches expected targets
     targets = models[model_key]["features"].get("targets", [])
@@ -383,6 +386,7 @@ def predict(input_data: PredictionInput):
 
 if __name__ == "__main__":
     uvicorn.run(app, host="127.0.0.1", port=5555)
+
 
 
 
