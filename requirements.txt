@@ -5,3 +5,7 @@ numpy
 plotly
 pandas
 requests
+typing
+pickle
+os
+json
