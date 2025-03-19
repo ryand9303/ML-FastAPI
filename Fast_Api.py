@@ -226,10 +226,10 @@ models = {}
 model_availability = {}  # Dictionary to store model availability status
 data_summary = {}  # Store feature and target type information
 
-def download_file_from_github(model_folder, filename):
+def download_file_from_github(model_type, model_version,filename):
     """Download a file from GitHub and check if it exists."""
-    model_folder = model_folder.replace(" ", "_")  # Handle spaces in model names
-    url = f"{GITHUB_REPO_URL}/{model_folder}/{filename}"
+    
+    url = f"{GITHUB_REPO_URL}/Models/{model_type}/{model_version}/{filename}"
     
     print(f"🔗 Attempting to download: {url}")  # Debugging
     response = requests.get(url)
@@ -253,13 +253,14 @@ def load_models():
         try:
             # Dynamically determine filenames based on model type and version
             feature_file = f"features{model_version}.json"
-            metrics_file = f"performance_metrics{model_version.replace('.', '')}.json"
-            model_file = f"tuned_multi_output_model{model_version.replace('.', '')}.pkl"
+            metrics_file = f"performance_metrics{model_version}.json"
+            model_file = f"tuned_multi_output_model{model_version}.pkl"
 
             # Check availability of all required files
-            model_content = download_file_from_github(model_key, model_file)
-            features_content = download_file_from_github(model_key, feature_file)
-            metrics_content = download_file_from_github(model_key, metrics_file)
+            model_content = download_file_from_github(model_type, model_version, model_file)
+            features_content = download_file_from_github(model_type, model_version, feature_file)
+            metrics_content = download_file_from_github(model_type, model_version, metrics_file)
+        
 
             # Check if files exist before proceeding
             if not all([model_content, features_content, metrics_content]):
