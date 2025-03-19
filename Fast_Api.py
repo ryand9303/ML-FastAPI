@@ -252,7 +252,7 @@ def load_models():
 
         try:
             # Dynamically determine filenames based on model type and version
-            feature_file = f"features{model_version.replace('.', '')}.json"
+            feature_file = f"features{model_version}.json"
             metrics_file = f"performance_metrics{model_version.replace('.', '')}.json"
             model_file = f"tuned_multi_output_model{model_version.replace('.', '')}.pkl"
 
