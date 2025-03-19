@@ -213,9 +213,9 @@ MODELS = [
     {"model_type": "Random Forest", "version": "1.0"},
     {"model_type": "Random Forest", "version": "2.0"},
     {"model_type": "Gradient Boosting", "version": "1.0"},
-    {"model_type": "Gradient Boosting", "version": "2.0"},
-    {"model_type": "Gauss Process Regression", "version": "1.0"},
-    {"model_type": "Gauss Process Regression", "version": "2.0"}
+    {"model_type": "Gradient Boosting", "version": "2.0"}
+    #{"model_type": "Gauss Process Regression", "version": "1.0"},
+    #{"model_type": "Gauss Process Regression", "version": "2.0"}
 ]
 
 # GitHub repository details (CHANGE URL TO MATCH YOUR REPO)
