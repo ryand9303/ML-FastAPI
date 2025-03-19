@@ -229,7 +229,7 @@ data_summary = {}  # Store feature and target type information
 def download_file_from_github(model_type, model_version,filename):
     """Download a file from GitHub and check if it exists."""
     
-    url = f"{GITHUB_REPO_URL}/Models/{model_type}/{model_version}/{filename}"
+    url = f"{GITHUB_REPO_URL}/{model_type}/{model_version}/{filename}"
     
     print(f"🔗 Attempting to download: {url}")  # Debugging
     response = requests.get(url)
