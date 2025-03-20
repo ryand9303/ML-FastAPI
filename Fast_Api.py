@@ -191,11 +191,12 @@ from typing import Dict
 import joblib
 import numpy as np
 import json
-import requests  # To download files from GitHub
+import requests
 import pandas as pd
 from io import BytesIO
-import os
 from fastapi.middleware.cors import CORSMiddleware
+import pickle
+import os
 
 # FastAPI Setup
 app = FastAPI()
@@ -224,11 +225,11 @@ models = {}
 model_availability = {}  # Dictionary to store model availability status
 data_summary = {}  # Store feature and target type information
 
-# Function to download files from GitHub
 def download_file_from_github(model_type, model_version, filename):
     """Download a file from GitHub and check if it exists."""
     
-    model_type_encoded = model_type.replace(" ", "%20")  # Encode spaces for URLs
+    # Ensure model type names are correctly formatted for URLs
+    model_type_encoded = model_type.replace(" ", "%20")  
     url = f"{GITHUB_REPO_URL}/{model_type_encoded}/{model_version}/{filename}"
     
     print(f"🔗 Attempting to download: {url}")  # Debugging
@@ -236,12 +237,11 @@ def download_file_from_github(model_type, model_version, filename):
 
     if response.status_code == 200 and "text/html" not in response.headers.get("Content-Type", ""):
         print(f"✅ Successfully downloaded {filename} for {model_type} {model_version}")  
-        return BytesIO(response.content)  # Return binary content as BytesIO
+        return response.content  # Ensures binary content is returned
     else:
         print(f"⚠️ Warning: Could not download {filename} for {model_type} {model_version} (Status: {response.status_code})")  
         return None
 
-# Function to load models from GitHub
 def load_models():
     """Download and load models from GitHub dynamically, checking availability."""
     for model in MODELS:
@@ -262,7 +262,7 @@ def load_models():
             features_content = download_file_from_github(model_type, model_version, feature_file)
             metrics_content = download_file_from_github(model_type, model_version, metrics_file)
 
-            # Check if all files exist
+            # Check if files exist
             if not all([model_content, features_content, metrics_content]):
                 print(f"⚠️ Model {model_key} is missing files. Marking as unavailable.")
                 model_availability[model_key] = False
@@ -271,20 +271,31 @@ def load_models():
             # Save model file temporarily before loading
             temp_model_path = f"temp_model_{model_version}.pkl"
             with open(temp_model_path, "wb") as f:
-                f.write(model_content.getbuffer())
+                f.write(model_content)
 
-            # Load the model from file
+            # Verify that the saved file is a valid pickle file before loading
             try:
-                print(f"📦 Unpacking model {model_key}")
-                model_obj = joblib.load(temp_model_path)  # ✅ Use joblib
+                print(f"📦 Validating and unpacking model {model_key}")
+
+                # First, check if it's a valid joblib file
+                with open(temp_model_path, "rb") as f:
+                    first_byte = f.read(1)  # Read the first byte
+
+                if first_byte == b'\x80':  # Joblib format starts with 0x80
+                    model_obj = joblib.load(temp_model_path)  # ✅ Use joblib
+                else:
+                    print(f"⚠️ {model_key} might be a non-joblib pickle. Trying with pickle.")
+                    with open(temp_model_path, "rb") as f:
+                        model_obj = pickle.load(f)
+
             except Exception as e:
                 print(f"❌ Unpickling failed for {model_key}: {e}")
                 model_availability[model_key] = False
                 continue
 
             # Load JSON data properly
-            features = json.loads(features_content.read().decode("utf-8"))
-            performance_metrics = json.loads(metrics_content.read().decode("utf-8"))
+            features = json.loads(features_content.decode("utf-8"))
+            performance_metrics = json.loads(metrics_content.decode("utf-8"))
 
             # Store in memory
             models[model_key] = {
@@ -372,17 +383,8 @@ def predict(input_data: PredictionInput):
     model = models[model_key]["model"]
     prediction = model.predict(feature_array)
 
-    print(f"🔎 Model Prediction: {prediction}")  # Debugging
-
-    # Ensure output format matches expected targets
-    targets = models[model_key]["features"].get("targets", [])
+    return {models[model_key]["features"]["targets"][i]: prediction[i] for i in range(len(prediction))}
     
-    if len(prediction[0]) != len(targets):
-        raise HTTPException(status_code=500, detail="Model output does not match expected targets.")
-
-    # Return predictions as JSON
-    return {targets[i]: prediction[0][i] for i in range(len(targets))}
-
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="127.0.0.1", port=5555)
