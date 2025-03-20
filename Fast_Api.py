@@ -188,13 +188,12 @@
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 from typing import Dict
-import pickle
+import joblib
 import numpy as np
 import json
-import joblib
-import uvicorn
 import requests  # To download files from GitHub
 import pandas as pd
+from io import BytesIO
 from fastapi.middleware.cors import CORSMiddleware
 
 # FastAPI Setup
@@ -232,26 +231,14 @@ def download_file_from_github(model_type, model_version, filename):
     url = f"{GITHUB_REPO_URL}/{model_type_encoded}/{model_version}/{filename}"
     
     print(f"🔗 Attempting to download: {url}")  # Debugging
-    response = requests.get(url)
+    response = requests.get(url, stream=True)
 
     if response.status_code == 200 and "text/html" not in response.headers.get("Content-Type", ""):
         print(f"✅ Successfully downloaded {filename} for {model_type} {model_version}")  
-        return response.content
+        return response.content  # Ensures binary content is returned
     else:
         print(f"⚠️ Warning: Could not download {filename} for {model_type} {model_version} (Status: {response.status_code})")  
         return None
-
-def verify_pickle_content(content):
-    """Verify that the content is a valid pickle file before loading."""
-    try:
-        pickle.loads(content)
-        return True
-    except pickle.UnpicklingError as e:
-        print(f"Unpickling error: {e}")  # Detailed error information
-        return False
-    except Exception as e:
-        print(f"Unexpected error during pickling validation: {e}")  # Catch-all for any other errors
-        return False
 
 def load_models():
     """Download and load models from GitHub dynamically, checking availability."""
@@ -279,15 +266,14 @@ def load_models():
                 model_availability[model_key] = False
                 continue
 
-            # Verify if .pkl is valid before loading
-            if not verify_pickle_content(model_content):
-                print(f"❌ Pickle validation failed: {model_key}")
-                model_availability[model_key] = False  # Mark as unavailable
+            # Deserialize files safely
+            try:
+                print(f"📦 Unpacking model {model_key}")
+                model_obj = joblib.load(BytesIO(model_content))  # ✅ Use joblib instead of pickle
+            except Exception as e:
+                print(f"❌ Unpickling failed for {model_key}: {e}")
+                model_availability[model_key] = False
                 continue
-
-            # Deserialize files
-            print(f"📦 Unpacking model {model_key}")
-            model_obj = pickle.loads(model_content)
 
             features = json.loads(features_content)
             performance_metrics = json.loads(metrics_content)
@@ -365,11 +351,11 @@ def predict(input_data: PredictionInput):
         raise HTTPException(status_code=404, detail="Model not found or unavailable")
 
     # Ensure all required features are provided
-    #required_features = models[model_key]["features"].get("features", [])
-    #missing_features = [f for f in required_features if f not in features]
+    required_features = models[model_key]["features"].get("features", [])
+    missing_features = [f for f in required_features if f not in features]
 
-    #if missing_features:
-        #raise HTTPException(status_code=400, detail=f"Missing features: {missing_features}")
+    if missing_features:
+        raise HTTPException(status_code=400, detail=f"Missing features: {missing_features}")
 
     # Convert input features to NumPy array
     feature_array = np.array([features[f] for f in required_features]).reshape(1, -1)
