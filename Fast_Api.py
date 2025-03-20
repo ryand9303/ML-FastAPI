@@ -275,6 +275,42 @@ def load_models():
                 f.write(model_content)
 
             # Verify that the saved file is a valid pickle file before loading
+            print(f"📦 Validating and unpacking model {model_key}")
+            model_obj = joblib.load(temp_model_path)
+
+            # Load JSON data properly
+            features = json.loads(features_content.decode("utf-8"))
+
+            # Check if features have the expected structure
+            if isinstance(features, dict) and 'features' in features and 'targets' in features:
+                # Store features and targets in the data_summary
+                data_summary[model_key] = {
+                    "features": features.get("features", []),
+                    "targets": features.get("targets", [])
+                }
+            else:
+                print(f"⚠️ Warning: Unexpected structure in features file for {model_key}")
+
+            # Store model in memory
+            models[model_key] = {
+                "model": model_obj,
+                "features": features,
+            }
+
+            model_availability[model_key] = True  # Mark as available
+            print(f"✅ Loaded {model_key} successfully!")
+
+        except Exception as e:
+            print(f"❌ Error loading {model_key}: {e}")
+            model_availability[model_key] = False  # Mark as unavailable
+                continue
+
+            # Save model file temporarily before loading
+            temp_model_path = f"temp_model_{model_version}.pkl"
+            with open(temp_model_path, "wb") as f:
+                f.write(model_content)
+
+            # Verify that the saved file is a valid pickle file before loading
             try:
                 print(f"📦 Validating and unpacking model {model_key}")
 
@@ -353,7 +389,15 @@ def get_model_performance_metrics(model_type: str, version: str):
 @app.get("/getDataSummary")
 def get_data_summary():
     """Returns a summary of all features and targets available across models."""
-    return data_summary
+    summary = {}
+    
+    for model_key, data in data_summary.items():
+        summary[model_key] = {
+            "features": data.get("features", []),
+            "targets": data.get("targets", [])
+        }
+
+    return summary
 
 # Define the labeled features for version 1.0 and version 2.0
 class Features1(BaseModel):
