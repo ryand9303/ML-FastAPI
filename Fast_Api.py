@@ -280,25 +280,21 @@ def load_models():
 
             # Load JSON data properly
             features = json.loads(features_content.decode("utf-8"))
+            print(f"🔍 Loaded features for {model_key}: {features}")  # Debugging
 
-            # Check if features have the expected structure
-            if isinstance(features, dict) and 'features' in features and 'targets' in features:
+            # Assuming features is a list of feature names
+            if isinstance(features, list):  # If the features list is formatted as expected
+                # Define your fixed targets
+                targets = ['Rotor1_Torque.Torque', 'Rotor2_Torque.Torque', 'Mods1_Torque.Torque']
+
                 # Store features and targets in the data_summary
                 data_summary[model_key] = {
-                    "features": features.get("features", []),
-                    "targets": features.get("targets", [])
+                    "features": features,  # List of features from the JSON
+                    "targets": targets  # Fixed target values
                 }
+                print(f"✅ Recorded data for {model_key}: {data_summary[model_key]}")  # Debugging
             else:
                 print(f"⚠️ Warning: Unexpected structure in features file for {model_key}")
-
-            # Store model in memory
-            models[model_key] = {
-                "model": model_obj,
-                "features": features,
-            }
-
-            model_availability[model_key] = True  # Mark as available
-            print(f"✅ Loaded {model_key} successfully!")
 
         except Exception as e:
             print(f"❌ Error loading {model_key}: {e}")
