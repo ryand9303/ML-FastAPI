@@ -275,38 +275,6 @@ def load_models():
                 f.write(model_content)
 
             # Verify that the saved file is a valid pickle file before loading
-            print(f"📦 Validating and unpacking model {model_key}")
-            model_obj = joblib.load(temp_model_path)
-
-            # Load JSON data properly
-            features = json.loads(features_content.decode("utf-8"))
-            print(f"🔍 Loaded features for {model_key}: {features}")  # Debugging
-
-            # Assuming features is a list of feature names
-            if isinstance(features, list):  # If the features list is formatted as expected
-                # Define your fixed targets
-                targets = ['Rotor1_Torque.Torque', 'Rotor2_Torque.Torque', 'Mods1_Torque.Torque']
-
-                # Store features and targets in the data_summary
-                data_summary[model_key] = {
-                    "features": features,  # List of features from the JSON
-                    "targets": targets  # Fixed target values
-                }
-                print(f"✅ Recorded data for {model_key}: {data_summary[model_key]}")  # Debugging
-            else:
-                print(f"⚠️ Warning: Unexpected structure in features file for {model_key}")
-
-        except Exception as e:
-            print(f"❌ Error loading {model_key}: {e}")
-            model_availability[model_key] = False  # Mark as unavailable
-            continue
-
-            # Save model file temporarily before loading
-            temp_model_path = f"temp_model_{model_version}.pkl"
-            with open(temp_model_path, "wb") as f:
-                f.write(model_content)
-
-            # Verify that the saved file is a valid pickle file before loading
             try:
                 print(f"📦 Validating and unpacking model {model_key}")
 
@@ -384,17 +352,27 @@ def get_model_performance_metrics(model_type: str, version: str):
 
 @app.get("/getDataSummary")
 def get_data_summary():
-    """Returns a summary of all features and targets available across models."""
+    """Returns a summary of all features and their type (feature or target) for each model."""
+    
+    # Fixed target names
+    targets = ['Rotor1_Torque.Torque', 'Rotor2_Torque.Torque', 'Mods1_Torque.Torque']
+
     summary = {}
 
-    for model_key, data in data_summary.items():
-        # Retrieve stored features and targets
-        features = data.get("features", [])
-        targets = data.get("targets", [])
+    for model in MODELS:
+        model_type = model["model_type"]
+        model_version = model["version"]
+        model_key = f"{model_type} {model_version}"
+
+        # Get model features using the existing function
+        if model_key in models:
+            features = models[model_key]["features"].get("features", [])
+        else:
+            features = []
 
         summary[model_key] = {
-            "features": features,
-            "targets": targets
+            "features": features,  # Feature list from the model
+            "targets": targets  # Fixed list of target values
         }
 
     return summary
