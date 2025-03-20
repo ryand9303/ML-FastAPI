@@ -355,66 +355,83 @@ def get_data_summary():
     """Returns a summary of all features and targets available across models."""
     return data_summary
 
+# Define expected input sizes
 EXPECTED_INPUTS = {
     "1.0": 9,
     "2.0": 23
 }
 
+class ModelSelection(BaseModel):
+    model_type: str
+    version: str
+
+@app.post("/PredictionInput")
+def prediction_input(selection: ModelSelection):
+    """
+    First step: Takes model type and version, 
+    returns a JSON object with the correct number of feature slots.
+    """
+    
+    version = selection.version
+
+    if version not in EXPECTED_INPUTS:
+        raise HTTPException(status_code=400, detail="Invalid model version. Must be '1.0' or '2.0'.")
+
+    # Create a dictionary with numbered feature keys
+    features_template = {str(i + 1): 0.0 for i in range(EXPECTED_INPUTS[version])}
+
+    return {
+        "model_type": selection.model_type,
+        "version": version,
+        "features": features_template
+    }
+
+
+# Define prediction input format
 class PredictionInput(BaseModel):
     model_type: str
     version: str
-    features: Dict[int, float] = Field(
-        ..., 
-        description="Feature values as a numbered dictionary (1 to 9 for version 1.0, 1 to 23 for version 2.0)."
-    )
-
-    @classmethod
-    def generate_random_features(cls, version: str) -> Dict[int, float]:
-        """Generate random values based on the version's expected input length."""
-        expected_length = EXPECTED_INPUTS.get(version)
-        if expected_length is None:
-            raise ValueError("Unsupported model version")
-        return {i + 1: round(random.uniform(-10, 10), 5) for i in range(expected_length)}
-
-    @classmethod
-    def validate_input_features(cls, features, version: str):
-        """Validate and ensure correct feature input structure."""
-        expected_length = EXPECTED_INPUTS.get(version)
-        if not isinstance(features, dict) or len(features) != expected_length:
-            raise ValueError(f"Expected {expected_length} features, but received {len(features)}.")
-
-    @classmethod
-    def from_user_input(cls, model_type: str, version: str, features: Union[Dict[int, float], str]):
-        """Handles validation and random feature generation."""
-        if features == "random":
-            features = cls.generate_random_features(version)
-        else:
-            cls.validate_input_features(features, version)
-        return cls(model_type=model_type, version=version, features=features)
-
+    features: Union[List[float], str] = Field(..., description="Numerical features or 'random'.")
 
 @app.post("/predict")
 def predict(input_data: PredictionInput):
-    """Handles model selection, validation of input length, random generation, and prediction."""
-    
+    """
+    Second step: Uses model_type and version to validate input, 
+    generate random values if needed, and perform the prediction.
+    """
+
     model_key = f"{input_data.model_type} {input_data.version}"
 
     # Validate model existence
     if model_key not in models:
         raise HTTPException(status_code=404, detail="Model not found or unavailable")
 
-    # Extract and sort input features
-    expected_length = EXPECTED_INPUTS[input_data.version]
-    input_features = [input_data.features.get(i + 1, 0) for i in range(expected_length)]
+    # Determine required input length
+    expected_length = EXPECTED_INPUTS.get(input_data.version)
+    if expected_length is None:
+        raise HTTPException(status_code=400, detail="Unsupported model version")
 
-    # Convert input data into a JSON format
+    # Handle "random" feature generation
+    if isinstance(input_data.features, str) and input_data.features.lower() == "random":
+        input_features = [round(random.uniform(-10, 10), 5) for _ in range(expected_length)]
+    else:
+        input_features = input_data.features
+
+    # Validate feature length
+    if len(input_features) != expected_length:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Incorrect number of features. Expected {expected_length}, but got {len(input_features)}."
+        )
+
+    # Convert input to JSON and save temporarily
     input_json = {"values": input_features}
     json_filename = "data.json"
     
     with open(json_filename, "w") as f:
         json.dump(input_json, f)
 
-    # Load the corresponding model
+    # Load the model
     model_path = models[model_key]["model"]
     
     try:
@@ -422,7 +439,7 @@ def predict(input_data: PredictionInput):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error loading model: {str(e)}")
 
-    # Convert input features into NumPy array and predict
+    # Convert input features to NumPy array and predict
     feature_array = np.array(input_features).reshape(1, -1)
     prediction = model.predict(feature_array)
 
