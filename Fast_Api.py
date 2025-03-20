@@ -386,11 +386,22 @@ def get_model_performance_metrics(model_type: str, version: str):
 def get_data_summary():
     """Returns a summary of all features and targets available across models."""
     summary = {}
+    
+    # Hard-coded list of targets
+    targets = ['Rotor1_Torque.Torque', 'Rotor2_Torque.Torque', 'Mods1_Torque.Torque']
 
-    for model_key, data in data_summary.items():
+    for model in MODELS:
+        model_type = model["model_type"]
+        model_version = model["version"]
+        model_key = f"{model_type} {model_version}"  # Unique identifier
+
+        # Get model features using the existing endpoint
+        features = get_model_features(model_type, model_version).get("features", [])
+
         summary[model_key] = {
-            "features": data.get("features", []),
-            "targets": data.get("targets", [])
+            "model_type": model_key,
+            "features": features,
+            "targets": targets
         }
 
     return summary
