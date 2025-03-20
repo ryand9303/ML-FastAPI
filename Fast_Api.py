@@ -367,7 +367,6 @@ class PredictionInput(BaseModel):
     version: str
     features: Union[List[float], str] = Field(..., description="List of numerical feature values or 'random'")
 
-app = FastAPI()
 
 @app.post("/predict")
 def predict(input_data: PredictionInput):
