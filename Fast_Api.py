@@ -186,7 +186,7 @@
 
 
 from fastapi import FastAPI, HTTPException
-from pydantic import BaseModel, Field, root_validator
+from pydantic import BaseModel, Field, RootModel
 from typing import Dict, List, Union
 import joblib
 import numpy as np
@@ -360,47 +360,47 @@ EXPECTED_INPUTS = {
     "2.0": 23
 }
 
-# ✅ Define Feature Models for Each Version
-class FeaturesV1(BaseModel):
+# ✅ Use `RootModel` Instead of `BaseModel`
+class FeaturesV1(RootModel):
     """Defines exactly 9 inputs for version 1.0"""
-    __root__: Dict[int, float] = Field(..., example={i: 0.0 for i in range(1, 10)})
+    root: Dict[int, float] = Field(..., example={i: 0.0 for i in range(1, 10)})
 
-class FeaturesV2(BaseModel):
+class FeaturesV2(RootModel):
     """Defines exactly 23 inputs for version 2.0"""
-    __root__: Dict[int, float] = Field(..., example={i: 0.0 for i in range(1, 24)})
+    root: Dict[int, float] = Field(..., example={i: 0.0 for i in range(1, 24)})
 
-# ✅ Define Prediction Input Model
 class PredictionInput(BaseModel):
     model_type: str
     version: str
-    features: Union[FeaturesV1, FeaturesV2, str] = Field(..., description="Feature values as a numbered dictionary (1 to 9 or 1 to 23), or 'random'")
+    features: Union[FeaturesV1, FeaturesV2, str] = Field(
+        ..., description="Feature values as a numbered dictionary (1 to 9 or 1 to 23), or 'random'"
+    )
 
-    @root_validator(pre=True)
-    def validate_features(cls, values):
-        """Validate features based on the version (9 or 23 inputs)."""
-        version = values.get("version")
+    @classmethod
+    def generate_random_features(cls, version: str) -> Dict[int, float]:
+        """Generate random values based on the version's expected input length."""
         expected_length = EXPECTED_INPUTS.get(version)
-
         if expected_length is None:
             raise ValueError("Unsupported model version")
+        return {i + 1: round(random.uniform(-10, 10), 5) for i in range(expected_length)}
 
-        features = values.get("features")
-
-        # ✅ If user types "random", generate random values
-        if isinstance(features, str) and features.lower() == "random":
-            values["features"] = {i + 1: round(random.uniform(-10, 10), 5) for i in range(expected_length)}
-            return values  # Return updated values with random numbers
-
-        # ✅ Ensure input is a dictionary with correct number of keys
-        if not isinstance(features, dict):
-            raise ValueError(f"Features should be a dictionary with {expected_length} keys (1 to {expected_length}).")
-
-        if len(features) != expected_length:
+    @classmethod
+    def validate_input_features(cls, features, version: str):
+        """Validate and ensure correct feature input structure."""
+        expected_length = EXPECTED_INPUTS.get(version)
+        if not isinstance(features, dict) or len(features) != expected_length:
             raise ValueError(f"Expected {expected_length} features, but received {len(features)}.")
 
-        return values
+    @classmethod
+    def from_user_input(cls, model_type: str, version: str, features: Union[Dict[int, float], str]):
+        """Handles validation and random feature generation."""
+        if features == "random":
+            features = cls.generate_random_features(version)
+        else:
+            cls.validate_input_features(features, version)
+        return cls(model_type=model_type, version=version, features=features)
 
-# ✅ Update predict function
+
 @app.post("/predict")
 def predict(input_data: PredictionInput):
     """Handles model selection, validation of input length, random generation, and prediction."""
@@ -412,7 +412,7 @@ def predict(input_data: PredictionInput):
         raise HTTPException(status_code=404, detail="Model not found or unavailable")
 
     # Extract and sort input features
-    input_features = [input_data.features.__root__[i + 1] for i in range(EXPECTED_INPUTS[input_data.version])]
+    input_features = [input_data.features.root[i + 1] for i in range(EXPECTED_INPUTS[input_data.version])]
 
     # Convert input data into a JSON format
     input_json = {"values": input_features}
@@ -439,6 +439,7 @@ def predict(input_data: PredictionInput):
         "input_features": input_features,
         "prediction": prediction.tolist()
     }
+
     
 if __name__ == "__main__":
     import uvicorn
