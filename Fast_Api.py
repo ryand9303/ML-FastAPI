@@ -12,6 +12,7 @@ from fastapi.middleware.cors import CORSMiddleware
 import pickle
 import os
 import plotly.express as px
+import plotly.io as pio
 
 
 # FastAPI Setup
@@ -331,76 +332,74 @@ def predict(input_data: PredictionInput):
         "prediction": prediction.tolist()
     }
 
-# Define allowed plot types
-ALLOWED_PLOT_TYPES = ["histogram", "correlation", "violin"]
+GITHUB_PLOTS_URL = "https://raw.githubusercontent.com/ryand9303/ML-FastAPI/main/Plots"
 
-# Directory for saving plots
-PLOTS_DIR = "plots"
+# Define dataset location (Change if needed)
+DATASET_PATH = "data.json"
+
+# Ensure local directory for plots exists
+PLOTS_DIR = "Plots"
 os.makedirs(PLOTS_DIR, exist_ok=True)
 
-class PlotRequest(BaseModel):
-    plot_type: str
-    variables: List[str]
-
-@app.post("/getPlot")
-def get_plot(plot_request: PlotRequest):
+@app.get("/getPlot/{plot_name}")
+def get_plot(plot_name: str):
     """
-    Generate a plot based on the given type and variables.
-    Supported types: histogram, correlation map, violin plot.
-    The plot is saved as an HTML file and returned as a download link.
+    Fetches the requested plot HTML file from the GitHub repository's 'Plots' folder.
     """
 
-    plot_type = plot_request.plot_type.lower()
-    variables = plot_request.variables
+    # Construct the GitHub URL for the plot file
+    plot_url = f"{GITHUB_PLOTS_URL}/{plot_name}.html"
 
-    # Validate plot type
-    if plot_type not in ALLOWED_PLOT_TYPES:
-        raise HTTPException(status_code=400, detail=f"Invalid plot type. Choose from {ALLOWED_PLOT_TYPES}")
+    # Attempt to download the plot file
+    response = requests.get(plot_url)
 
-    # Load the dataset (this should be replaced with your actual dataset)
+    if response.status_code == 200:
+        return {"message": "Plot retrieved successfully", "plot_url": plot_url}
+    else:
+        raise HTTPException(status_code=404, detail="Plot not found in GitHub repository")
+
+
+@app.get("/generatePlot")
+def generate_plot(plot_type: str, variables: List[str]):
+    """
+    Generates a plot dynamically based on user input.
+    
+    Parameters:
+    - plot_type: "histogram", "correlation_map", or "violin_plot"
+    - variables: List of feature names to plot
+    """
+
+    # Load dataset from JSON
     try:
-        df = pd.read_csv("your_dataset.csv")  # Replace with actual dataset path
-    except FileNotFoundError:
-        raise HTTPException(status_code=500, detail="Dataset not found.")
+        with open(DATASET_PATH, "r") as f:
+            data = pd.DataFrame(json.load(f)["values"])
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to load dataset: {str(e)}")
 
-    # Validate variables exist in dataset
-    for var in variables:
-        if var not in df.columns:
-            raise HTTPException(status_code=400, detail=f"Variable '{var}' not found in dataset.")
+    # Check if variables exist in the dataset
+    missing_vars = [var for var in variables if var not in data.columns]
+    if missing_vars:
+        raise HTTPException(status_code=400, detail=f"Missing variables in dataset: {missing_vars}")
 
-    fig = None
+    # Create and save the requested plot
+    plot_path = f"{PLOTS_DIR}/{plot_type}_{'_'.join(variables)}.html"
 
-    # Generate plot based on type
-    if plot_type == "histogram":
-        if len(variables) != 1:
-            raise HTTPException(status_code=400, detail="Histogram requires exactly one variable.")
-        fig = px.histogram(df, x=variables[0], title=f"Histogram of {variables[0]}")
-    
-    elif plot_type == "correlation":
+    if plot_type.lower() == "histogram":
+        fig = px.histogram(data, x=variables[0], title=f"Histogram of {variables[0]}")
+    elif plot_type.lower() == "correlation_map":
+        corr_matrix = data[variables].corr()
+        fig = px.imshow(corr_matrix, title="Correlation Map", labels=dict(color="Correlation"))
+    elif plot_type.lower() == "violin_plot":
         if len(variables) < 2:
-            raise HTTPException(status_code=400, detail="Correlation map requires at least two variables.")
-        correlation_matrix = df[variables].corr()
-        fig = px.imshow(correlation_matrix, text_auto=True, title="Correlation Matrix")
-    
-    elif plot_type == "violin":
-        if len(variables) != 1:
-            raise HTTPException(status_code=400, detail="Violin plot requires exactly one variable.")
-        fig = px.violin(df, y=variables[0], title=f"Violin Plot of {variables[0]}")
+            raise HTTPException(status_code=400, detail="Violin plot requires at least two variables (x and y).")
+        fig = px.violin(data, x=variables[0], y=variables[1], box=True, title=f"Violin Plot: {variables[1]} vs {variables[0]}")
+    else:
+        raise HTTPException(status_code=400, detail="Invalid plot type. Choose from 'histogram', 'correlation_map', or 'violin_plot'.")
 
-    # Save plot to an HTML file
-    plot_filename = f"{plot_type}_{'_'.join(variables)}.html"
-    plot_filepath = os.path.join(PLOTS_DIR, plot_filename)
-    fig.write_html(plot_filepath)
+    # Save the plot as an HTML file
+    pio.write_html(fig, plot_path)
 
-    return {"message": "Plot generated successfully", "plot_url": f"/plots/{plot_filename}"}
-
-@app.get("/plots/{plot_filename}")
-def get_plot_file(plot_filename: str):
-    """Returns the saved plot HTML file."""
-    plot_filepath = os.path.join(PLOTS_DIR, plot_filename)
-    if not os.path.exists(plot_filepath):
-        raise HTTPException(status_code=404, detail="Plot not found")
-    return FileResponse(plot_filepath, media_type="text/html")
+    return {"message": "Plot generated successfully", "plot_url": f"/{plot_path}"}
 
     
 if __name__ == "__main__":
