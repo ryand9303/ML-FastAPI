@@ -186,7 +186,7 @@
 
 
 from fastapi import FastAPI, HTTPException
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, root_validator
 from typing import Dict, List, Union
 import joblib
 import numpy as np
@@ -355,19 +355,43 @@ def get_data_summary():
     """Returns a summary of all features and targets available across models."""
     return data_summary
 
-# Define expected input lengths
 EXPECTED_INPUTS = {
     "1.0": 9,
     "2.0": 23
 }
 
-# Define prediction request structure
+# ✅ Modify the PredictionInput class
 class PredictionInput(BaseModel):
     model_type: str
     version: str
-    features: Union[List[float], str] = Field(..., description="List of numerical feature values or 'random'")
+    features: Union[Dict[int, float], str] = Field(..., description="Dictionary of feature values indexed from 1, or 'random'")
 
+    @root_validator(pre=True)
+    def validate_features(cls, values):
+        """Validate and adjust the number of required features based on the version."""
+        version = values.get("version")
+        expected_length = EXPECTED_INPUTS.get(version)
 
+        if expected_length is None:
+            raise ValueError("Unsupported model version")
+
+        features = values.get("features")
+
+        # ✅ If user types "random", generate random values
+        if isinstance(features, str) and features.lower() == "random":
+            values["features"] = {i + 1: round(random.uniform(-10, 10), 5) for i in range(expected_length)}
+            return values  # Return updated values with random numbers
+
+        # ✅ Ensure input is a dictionary with correct number of keys
+        if not isinstance(features, dict):
+            raise ValueError(f"Features should be a dictionary with {expected_length} keys (1 to {expected_length}).")
+
+        if len(features) != expected_length:
+            raise ValueError(f"Expected {expected_length} features, but received {len(features)}.")
+
+        return values
+
+# ✅ Update predict function
 @app.post("/predict")
 def predict(input_data: PredictionInput):
     """Handles model selection, validation of input length, random generation, and prediction."""
@@ -378,25 +402,8 @@ def predict(input_data: PredictionInput):
     if model_key not in models:
         raise HTTPException(status_code=404, detail="Model not found or unavailable")
 
-    # Check expected number of features
-    expected_length = EXPECTED_INPUTS.get(input_data.version)
-    
-    if expected_length is None:
-        raise HTTPException(status_code=400, detail="Unsupported model version")
-    
-    # Generate random values if user inputs "random"
-    if isinstance(input_data.features, str) and input_data.features.lower() == "random":
-        input_features = [round(random.uniform(-10, 10), 5) for _ in range(expected_length)]
-        print(f"🔀 Generated Random Features: {input_features}")  # Debugging
-    else:
-        input_features = input_data.features
-
-    # Ensure input length is correct
-    if len(input_features) != expected_length:
-        raise HTTPException(
-            status_code=400,
-            detail=f"Incorrect number of features. Expected {expected_length}, but got {len(input_features)}."
-        )
+    # Extract and sort input features
+    input_features = [input_data.features[i + 1] for i in range(EXPECTED_INPUTS[input_data.version])]
 
     # Convert input data into a JSON format
     input_json = {"values": input_features}
