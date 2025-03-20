@@ -355,44 +355,79 @@ def get_data_summary():
     """Returns a summary of all features and targets available across models."""
     return data_summary
 
+# Define the labeled features for version 1.0 and version 2.0
+class Features1(BaseModel):
+    feature_1: float
+    feature_2: float
+    feature_3: float
+    feature_4: float
+    feature_5: float
+    feature_6: float
+    feature_7: float
+    feature_8: float
+    feature_9: float
+
+class Features2(BaseModel):
+    feature_1: float
+    feature_2: float
+    feature_3: float
+    feature_4: float
+    feature_5: float
+    feature_6: float
+    feature_7: float
+    feature_8: float
+    feature_9: float
+    feature_10: float
+    feature_11: float
+    feature_12: float
+    feature_13: float
+    feature_14: float
+    feature_15: float
+    feature_16: float
+    feature_17: float
+    feature_18: float
+    feature_19: float
+    feature_20: float
+    feature_21: float
+    feature_22: float
+    feature_23: float
+
 class PredictionInput(BaseModel):
     model_type: str
     version: str
-    features_1_0: Optional[List[float]] = Field(None, description="Features for version 1.0 (9 inputs).")
-    features_2_0: Optional[List[float]] = Field(None, description="Features for version 2.0 (23 inputs).")
+    features_1: Optional[Features1] = None
+    features_2: Optional[Features2] = None
 
 @app.post("/predict")
 def predict(input_data: PredictionInput):
     """Handles model selection, input validation, and runs prediction."""
-
+    
     model_key = f"{input_data.model_type} {input_data.version}"
 
     # Validate model existence
     if model_key not in models:
         raise HTTPException(status_code=404, detail="Model not found or unavailable")
 
-    # Check if the version is correct
-    if input_data.version == "1.0" and input_data.features_1_0 is None:
-        raise HTTPException(status_code=400, detail="Features for version 1.0 must be provided.")
-    elif input_data.version == "2.0" and input_data.features_2_0 is None:
-        raise HTTPException(status_code=400, detail="Features for version 2.0 must be provided.")
+    features = None
+    expected_length = 0
 
-    # Determine which features to use
+    # Choose which features to work with based on version
     if input_data.version == "1.0":
-        features = input_data.features_1_0
+        if input_data.features_1 is None:
+            raise HTTPException(status_code=400, detail="Features for version 1.0 must be provided.")
+        features = input_data.features_1
         expected_length = 9
     else:
-        features = input_data.features_2_0
+        if input_data.features_2 is None:
+            raise HTTPException(status_code=400, detail="Features for version 2.0 must be provided.")
+        features = input_data.features_2
         expected_length = 23
 
-    # Validate the number of features
-    if len(features) != expected_length:
-        raise HTTPException(status_code=400, detail=f"Expected {expected_length} features for version {input_data.version}.")
-
-    # Save to data.json as before
-    input_json = {"values": features}
+    # Convert features into a list for prediction
+    feature_values = [getattr(features, f"feature_{i + 1}") for i in range(expected_length)]
 
     # Save to data.json
+    input_json = {"values": feature_values}
     json_filename = 'data.json'
     with open(json_filename, "w") as f:
         json.dump(input_json, f)
@@ -405,16 +440,15 @@ def predict(input_data: PredictionInput):
         raise HTTPException(status_code=500, detail=f"Error loading model: {str(e)}")
 
     # Convert input features into NumPy array and predict
-    feature_array = np.array(features).reshape(1, -1)
+    feature_array = np.array(feature_values).reshape(1, -1)
     prediction = model.predict(feature_array)
 
     return {
         "model_type": input_data.model_type,
         "version": input_data.version,
-        "input_features": features,
+        "input_features": feature_values,
         "prediction": prediction.tolist()
     }
-
     
 if __name__ == "__main__":
     import uvicorn
