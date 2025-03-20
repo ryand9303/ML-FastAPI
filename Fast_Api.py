@@ -366,7 +366,7 @@ def get_data_summary():
 
         # Get model features using the existing function
         if model_key in models:
-            features = models[model_key]["features"].get("features", [])
+            features = models[model_key]["features"]
         else:
             features = []
 
