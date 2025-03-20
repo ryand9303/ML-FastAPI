@@ -1,190 +1,3 @@
-
-# from fastapi import FastAPI, HTTPException
-# from pydantic import BaseModel
-# from typing import Dict
-# import pickle
-# import numpy as np
-# import os
-# import json
-# import uvicorn
-# import requests  # To download files from GitHub
-# import pandas as pd
-# import plotly.express as px
-# import plotly.io as pio
-# from fastapi.middleware.cors import CORSMiddleware
-
-# # FastAPI Setup
-# app = FastAPI()
-
-# app.add_middleware(
-#     CORSMiddleware,
-#     allow_origins=["https://revmagneticgearml.com"],  
-#     allow_credentials=True,
-#     allow_methods=["*"],
-#     allow_headers=["*"],
-# )
-
-# # Define model structure (List format)
-# MODELS = [
-#     {"model_type": "Random Forest", "version": "1.0"},
-#     {"model_type": "Random Forest", "version": "2.0"},
-#     {"model_type": "Gradient Boosting", "version": "1.0"},
-#     {"model_type": "Gradient Boosting", "version": "2.0"},
-#     {"model_type": "Gauss Process Regression", "version": "1.0"},
-#     {"model_type": "Gauss Process Regression", "version": "2.0"}
-# ]
-
-# # GitHub repository details (CHANGE URL TO MATCH YOUR REPO)
-# GITHUB_REPO_URL = "https://raw.githubusercontent.com/ryand9303/ML-FastAPI/main/Models"
-
-# # Store models in memory
-# models = {}
-# model_availability = {}  # Dictionary to store model availability status
-# data_summary = {}  # Store feature and target type information
-
-# def download_file_from_github(model_folder, filename):
-#     """Download a file from GitHub and check if it exists."""
-#     url = f"{GITHUB_REPO_URL}/{model_folder}/{filename}"
-#     response = requests.get(url)
-
-#     if response.status_code == 200:
-#         return response.content
-#     else:
-#         print(f"⚠️ Warning: Could not download {filename} for {model_folder}")
-#         return None
-
-# def load_models():
-#     """Download and load models from GitHub dynamically, checking availability."""
-#     for model in MODELS:
-#         model_type = model["model_type"]
-#         model_version = model["version"]
-#         model_key = f"{model_type} {model_version}"  # Unique identifier: Type + Version
-
-#         try:
-#             # Dynamically determine filenames based on model type and version
-#             feature_file = f"features{model_version.replace('.', '')}.json"
-#             metrics_file = f"performance_metrics{model_version.replace('.', '')}.json"
-#             model_file = f"tuned_multi_output_model{model_version.replace('.', '')}.pkl"
-
-#             # Check availability of all required files
-#             model_content = download_file_from_github(model_key, model_file)
-#             features_content = download_file_from_github(model_key, feature_file)
-#             metrics_content = download_file_from_github(model_key, metrics_file)
-
-#             if not all([model_content, features_content, metrics_content]):
-#                 print(f"⚠️ Model {model_key} is missing files and will be marked as unavailable.")
-#                 model_availability[model_key] = False
-#                 continue  # Skip loading this model
-
-#             # Deserialize files if available
-#             model_obj = pickle.loads(model_content)
-#             features = json.loads(features_content)
-#             performance_metrics = json.loads(metrics_content)
-
-#             # Store model in dictionary with unique identifier
-#             models[model_key] = {
-#                 "model": model_obj,
-#                 "features": features,
-#                 "performance_metrics": performance_metrics,
-#             }
-
-#             # Store feature and target details for the `getDataSummary` function
-#             data_summary[model_key] = {
-#                 "features": features.get("features", []),
-#                 "targets": features.get("targets", [])
-#             }
-
-#             model_availability[model_key] = True  # Mark model as available
-#             print(f"✅ Loaded {model_key} successfully!")
-
-#         except Exception as e:
-#             print(f"❌ Error loading {model_key}: {e}")
-#             model_availability[model_key] = False  # Mark model as unavailable
-
-# # Load models at startup
-# load_models()
-
-# @app.get("/getPlot")
-# def get_plot(plot_type: str, variable: str):
-#     """
-#     Generates a plot based on the requested type and variable.
-#     """
-#     # Load the dataset (Ensure `dataset.csv` is in the correct location)
-#     try:
-#         df = pd.read_csv("dataset.csv")
-#     except FileNotFoundError:
-#         raise HTTPException(status_code=500, detail="Dataset file not found.")
-
-#     # Check if the variable exists in the dataset
-#     if variable not in df.columns:
-#         raise HTTPException(status_code=400, detail="Invalid variable.")
-
-#     # Generate the requested plot
-#     if plot_type == "histogram":
-#         fig = px.histogram(df, x=variable, title=f"Histogram of {variable}")
-
-#     elif plot_type == "correlation":
-#         fig = px.imshow(df.corr(), text_auto=True, title="Correlation Matrix")
-
-#     elif plot_type == "violin":
-#         fig = px.violin(df, y=variable, box=True, points="all", title=f"Violin Plot of {variable}")
-
-#     else:
-#         raise HTTPException(status_code=400, detail="Invalid plot type.")
-
-#     # Save plot as an HTML file
-#     plot_path = f"plots/{plot_type}_{variable}.html"
-#     os.makedirs('plots', exist_ok=True)  # Ensure the directory exists
-#     pio.write_html(fig, file=plot_path)
-
-#     return {"plot_url": plot_path}
-
-# @app.get("/getDataSummary")
-# def get_data_summary():
-#     """Returns a summary of all features and targets available across models."""
-#     return data_summary
-
-# # Define prediction input format
-# class PredictionInput(BaseModel):
-#     model_type: str
-#     version: str
-#     features: Dict[str, float]
-
-# @app.post("/predict")
-# def predict(input_data: PredictionInput):
-#     """Takes a model_type, version, and feature values, runs prediction, and returns target values."""
-#     model_key = f"{input_data.model_type} {input_data.version}"
-#     features = input_data.features
-
-#     if model_key not in models:
-#         raise HTTPException(status_code=404, detail="Model not found or unavailable")
-
-#     # Ensure all required features are provided
-#     required_features = models[model_key]["features"].get("features", [])
-#     missing_features = [f for f in required_features if f not in features]
-
-#     if missing_features:
-#         raise HTTPException(status_code=400, detail=f"Missing features: {missing_features}")
-
-#     # Convert input features to NumPy array
-#     feature_array = np.array([features[f] for f in required_features]).reshape(1, -1)
-
-#     # Get model and predict
-#     model = models[model_key]["model"]
-#     prediction = model.predict(feature_array)
-
-#     # Ensure output format matches expected targets
-#     targets = models[model_key]["features"].get("targets", [])
-#     if len(prediction[0]) != len(targets):
-#         raise HTTPException(status_code=500, detail="Model output does not match expected targets.")
-
-#     # Return predictions as JSON
-#     return {targets[i]: prediction[0][i] for i in range(len(targets))}
-
-# if __name__ == "__main__":
-#     uvicorn.run(app, host="127.0.0.1", port=5555)
-
-
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel, Field, RootModel
 from typing import Dict, List, Union, Optional
@@ -198,6 +11,8 @@ from io import BytesIO
 from fastapi.middleware.cors import CORSMiddleware
 import pickle
 import os
+import plotly.express as px
+
 
 # FastAPI Setup
 app = FastAPI()
@@ -515,6 +330,78 @@ def predict(input_data: PredictionInput):
         "input_features": feature_values,
         "prediction": prediction.tolist()
     }
+
+# Define allowed plot types
+ALLOWED_PLOT_TYPES = ["histogram", "correlation", "violin"]
+
+# Directory for saving plots
+PLOTS_DIR = "plots"
+os.makedirs(PLOTS_DIR, exist_ok=True)
+
+class PlotRequest(BaseModel):
+    plot_type: str
+    variables: List[str]
+
+@app.post("/getPlot")
+def get_plot(plot_request: PlotRequest):
+    """
+    Generate a plot based on the given type and variables.
+    Supported types: histogram, correlation map, violin plot.
+    The plot is saved as an HTML file and returned as a download link.
+    """
+
+    plot_type = plot_request.plot_type.lower()
+    variables = plot_request.variables
+
+    # Validate plot type
+    if plot_type not in ALLOWED_PLOT_TYPES:
+        raise HTTPException(status_code=400, detail=f"Invalid plot type. Choose from {ALLOWED_PLOT_TYPES}")
+
+    # Load the dataset (this should be replaced with your actual dataset)
+    try:
+        df = pd.read_csv("your_dataset.csv")  # Replace with actual dataset path
+    except FileNotFoundError:
+        raise HTTPException(status_code=500, detail="Dataset not found.")
+
+    # Validate variables exist in dataset
+    for var in variables:
+        if var not in df.columns:
+            raise HTTPException(status_code=400, detail=f"Variable '{var}' not found in dataset.")
+
+    fig = None
+
+    # Generate plot based on type
+    if plot_type == "histogram":
+        if len(variables) != 1:
+            raise HTTPException(status_code=400, detail="Histogram requires exactly one variable.")
+        fig = px.histogram(df, x=variables[0], title=f"Histogram of {variables[0]}")
+    
+    elif plot_type == "correlation":
+        if len(variables) < 2:
+            raise HTTPException(status_code=400, detail="Correlation map requires at least two variables.")
+        correlation_matrix = df[variables].corr()
+        fig = px.imshow(correlation_matrix, text_auto=True, title="Correlation Matrix")
+    
+    elif plot_type == "violin":
+        if len(variables) != 1:
+            raise HTTPException(status_code=400, detail="Violin plot requires exactly one variable.")
+        fig = px.violin(df, y=variables[0], title=f"Violin Plot of {variables[0]}")
+
+    # Save plot to an HTML file
+    plot_filename = f"{plot_type}_{'_'.join(variables)}.html"
+    plot_filepath = os.path.join(PLOTS_DIR, plot_filename)
+    fig.write_html(plot_filepath)
+
+    return {"message": "Plot generated successfully", "plot_url": f"/plots/{plot_filename}"}
+
+@app.get("/plots/{plot_filename}")
+def get_plot_file(plot_filename: str):
+    """Returns the saved plot HTML file."""
+    plot_filepath = os.path.join(PLOTS_DIR, plot_filename)
+    if not os.path.exists(plot_filepath):
+        raise HTTPException(status_code=404, detail="Plot not found")
+    return FileResponse(plot_filepath, media_type="text/html")
+
     
 if __name__ == "__main__":
     import uvicorn
