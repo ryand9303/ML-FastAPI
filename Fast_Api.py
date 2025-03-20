@@ -395,6 +395,7 @@ class Features2(BaseModel):
 class PredictionInput(BaseModel):
     model_type: str
     version: str
+    use_random: Optional[bool] = Field(default=False, description="Set to true to use random feature values.")
     features_1: Optional[Features1] = None
     features_2: Optional[Features2] = None
 
@@ -413,21 +414,63 @@ def predict(input_data: PredictionInput):
 
     # Choose which features to work with based on version
     if input_data.version == "1.0":
-        if input_data.features_1 is None:
-            raise HTTPException(status_code=400, detail="Features for version 1.0 must be provided.")
-        features = input_data.features_1
         expected_length = 9
+        if input_data.use_random:
+            features = Features1(
+                feature_1=random.uniform(-10, 10),
+                feature_2=random.uniform(-10, 10),
+                feature_3=random.uniform(-10, 10),
+                feature_4=random.uniform(-10, 10),
+                feature_5=random.uniform(-10, 10),
+                feature_6=random.uniform(-10, 10),
+                feature_7=random.uniform(-10, 10),
+                feature_8=random.uniform(-10, 10),
+                feature_9=random.uniform(-10, 10)
+            )
+        elif input_data.features_1 is None:
+            raise HTTPException(status_code=400, detail="Features for version 1.0 must be provided.")
+        else:
+            features = input_data.features_1            
     else:
-        if input_data.features_2 is None:
-            raise HTTPException(status_code=400, detail="Features for version 2.0 must be provided.")
-        features = input_data.features_2
         expected_length = 23
+        if input_data.use_random:
+            features = Features2(
+                feature_1=random.uniform(-10, 10),
+                feature_2=random.uniform(-10, 10),
+                feature_3=random.uniform(-10, 10),
+                feature_4=random.uniform(-10, 10),
+                feature_5=random.uniform(-10, 10),
+                feature_6=random.uniform(-10, 10),
+                feature_7=random.uniform(-10, 10),
+                feature_8=random.uniform(-10, 10),
+                feature_9=random.uniform(-10, 10),
+                feature_10=random.uniform(-10, 10),
+                feature_11=random.uniform(-10, 10),
+                feature_12=random.uniform(-10, 10),
+                feature_13=random.uniform(-10, 10),
+                feature_14=random.uniform(-10, 10),
+                feature_15=random.uniform(-10, 10),
+                feature_16=random.uniform(-10, 10),
+                feature_17=random.uniform(-10, 10),
+                feature_18=random.uniform(-10, 10),
+                feature_19=random.uniform(-10, 10),
+                feature_20=random.uniform(-10, 10),
+                feature_21=random.uniform(-10, 10),
+                feature_22=random.uniform(-10, 10),
+                feature_23=random.uniform(-10, 10)
+            )
+        elif input_data.features_2 is None:
+            raise HTTPException(status_code=400, detail="Features for version 2.0 must be provided.")
+        else:
+            features = input_data.features_2
 
     # Convert features into a list for prediction
     feature_values = [getattr(features, f"feature_{i + 1}") for i in range(expected_length)]
 
-    # Save to data.json
+    # Save to data.json as before
     input_json = {"values": feature_values}
+    
+    # Save to data.json
     json_filename = 'data.json'
     with open(json_filename, "w") as f:
         json.dump(input_json, f)
