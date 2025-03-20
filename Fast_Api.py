@@ -258,20 +258,25 @@ def load_models():
     for model in MODELS:
         model_type = model["model_type"]
         model_version = model["version"]
+        model_version_clean = str(int(float(model_version)))  # Convert "1.0" → "1", "2.0" → "2"
         model_key = f"{model_type} {model_version}"  # Unique identifier
 
         print(f"🔄 Checking model {model_key} ...")  # Debugging
 
         try:
             # Dynamically determine filenames
-            feature_file = f"features{model_version}.json"
-            metrics_file = f"performance_metrics{model_version}.json"
-            model_file = f"tuned_multi_output_model{model_version}.pkl"
+            feature_file = f"features{model_version_clean}.json"
+            metrics_file = f"performance_metrics{model_version_clean}.json"
+            model_file = f"tuned_multi_output_model{model_version_clean}.pkl"
 
-            # ✅ Download files
-            model_content = download_file_from_github(model_type, model_version, model_file)
-            features_content = download_file_from_github(model_type, model_version, feature_file)
-            metrics_content = download_file_from_github(model_type, model_version, metrics_file)
+            # ✅ Correct directory path (Convert "1.0" → "1")
+            model_type_encoded = model_type.replace(" ", "%20")  # Ensure spaces are encoded for URLs
+            model_version_dir = model_version_clean  # GitHub folder uses "1", "2" instead of "1.0", "2.0"
+
+            # ✅ Download files from corrected paths
+            model_content = download_file_from_github(model_type_encoded, model_version_dir, model_file)
+            features_content = download_file_from_github(model_type_encoded, model_version_dir, feature_file)
+            metrics_content = download_file_from_github(model_type_encoded, model_version_dir, metrics_file)
 
             # Check if files exist
             if not all([model_content, features_content, metrics_content]):
