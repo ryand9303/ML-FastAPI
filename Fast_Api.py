@@ -187,7 +187,7 @@
 
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel, Field, RootModel
-from typing import Dict, List, Union
+from typing import Dict, List, Union, Optional
 import joblib
 import numpy as np
 import json
@@ -358,24 +358,8 @@ def get_data_summary():
 class PredictionInput(BaseModel):
     model_type: str
     version: str
-    features: List[float] = Field(..., description="Numerical features for prediction.")
-    
-@app.get("/getFeatureTemplate/{model_type}/{version}")
-def get_feature_template(model_type: str, version: str):
-    """Returns a template for input features based on the model type and version."""
-    
-    expected_length = EXPECTED_INPUTS.get(version)
-    if expected_length is None:
-        raise HTTPException(status_code=400, detail="Invalid model version. Must be '1.0' or '2.0'.")
-
-    # Create a template with zeros
-    features_template = [0.0 for _ in range(expected_length)]
-    
-    return {
-        "model_type": model_type,
-        "version": version,
-        "features": features_template
-    }
+    features_1_0: Optional[List[float]] = Field(None, description="Features for version 1.0 (9 inputs).")
+    features_2_0: Optional[List[float]] = Field(None, description="Features for version 2.0 (23 inputs).")
 
 @app.post("/predict")
 def predict(input_data: PredictionInput):
@@ -387,33 +371,47 @@ def predict(input_data: PredictionInput):
     if model_key not in models:
         raise HTTPException(status_code=404, detail="Model not found or unavailable")
 
-    expected_length = EXPECTED_INPUTS.get(input_data.version)
-    if expected_length is None or len(input_data.features) != expected_length:
+    # Check if the version is correct
+    if input_data.version == "1.0" and input_data.features_1_0 is None:
+        raise HTTPException(status_code=400, detail="Features for version 1.0 must be provided.")
+    elif input_data.version == "2.0" and input_data.features_2_0 is None:
+        raise HTTPException(status_code=400, detail="Features for version 2.0 must be provided.")
+
+    # Determine which features to use
+    if input_data.version == "1.0":
+        features = input_data.features_1_0
+        expected_length = 9
+    else:
+        features = input_data.features_2_0
+        expected_length = 23
+
+    # Validate the number of features
+    if len(features) != expected_length:
         raise HTTPException(status_code=400, detail=f"Expected {expected_length} features for version {input_data.version}.")
 
-    # Save to data.json as before...
-    input_json = {"values": input_data.features}
-    
+    # Save to data.json as before
+    input_json = {"values": features}
+
     # Save to data.json
     json_filename = 'data.json'
     with open(json_filename, "w") as f:
         json.dump(input_json, f)
 
-    # Load the model
+    # Load the corresponding model
     model_file_path = f"Models/{input_data.model_type}/{input_data.version}/tuned_multi_output_model{input_data.version}.pkl"
     try:
         model = joblib.load(model_file_path)
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error loading model: {str(e)}")
 
-    # Make prediction
-    feature_array = np.array(input_data.features).reshape(1, -1)
+    # Convert input features into NumPy array and predict
+    feature_array = np.array(features).reshape(1, -1)
     prediction = model.predict(feature_array)
 
     return {
         "model_type": input_data.model_type,
         "version": input_data.version,
-        "input_features": input_data.features,
+        "input_features": features,
         "prediction": prediction.tolist()
     }
 
