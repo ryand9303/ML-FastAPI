@@ -385,7 +385,7 @@ def get_model_performance_metrics(model_type: str, version: str):
 @app.get("/getDataSummary")
 def get_data_summary():
     """Returns a summary of all features and targets available across models."""
-    summary = {}
+    model_key = f"{input_data.model_type} {input_data.version}"
     
     # Hard-coded list of targets
     targets = ['Rotor1_Torque.Torque', 'Rotor2_Torque.Torque', 'Mods1_Torque.Torque']
@@ -398,13 +398,12 @@ def get_data_summary():
         # Get model features using the existing endpoint
         features = get_model_features(model_type, model_version).get("features", [])
 
-        summary[model_key] = {
-            "model_type": model_key,
-            "features": features,
-            "targets": targets
-        }
+    return {
+        "model_type": model_key,
+         "features": features,
+        "targets": targets
+    }
 
-    return summary
 
 # Define the labeled features for version 1.0 and version 2.0
 class Features1(BaseModel):
