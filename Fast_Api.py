@@ -300,7 +300,7 @@ def load_models():
             model_availability[model_key] = True  # Mark as available
             print(f"✅ Loaded {model_key} successfully!")
 
-            except Exception as e:
+        except Exception as e:
             print(f"❌ Error loading {model_key}: {e}")
             model_availability[model_key] = False  # Mark as unavailable
                 continue
