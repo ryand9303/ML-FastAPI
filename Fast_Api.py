@@ -303,7 +303,7 @@ def load_models():
         except Exception as e:
             print(f"❌ Error loading {model_key}: {e}")
             model_availability[model_key] = False  # Mark as unavailable
-                continue
+            continue
 
             # Save model file temporarily before loading
             temp_model_path = f"temp_model_{model_version}.pkl"
