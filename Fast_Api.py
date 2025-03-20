@@ -245,7 +245,11 @@ def verify_pickle_content(content):
     try:
         pickle.loads(content)
         return True
-    except pickle.UnpicklingError:
+    except pickle.UnpicklingError as e:
+        print(f"Unpickling error: {e}")  # Detailed error information
+        return False
+    except Exception as e:
+        print(f"Unexpected error during pickling validation: {e}")  # Catch-all for any other errors
         return False
 
 def load_models():
@@ -277,6 +281,7 @@ def load_models():
             # Verify if `.pkl` is valid before loading
             if not verify_pickle_content(model_content):
                 print(f"❌ Pickle validation failed: {model_key}")
+                model_availability[model_key] = False  # Mark as unavailable
                 continue
 
             # Deserialize files
