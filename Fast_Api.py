@@ -395,10 +395,7 @@ class PredictionInput(BaseModel):
 
 @app.post("/predict")
 def predict(input_data: PredictionInput):
-    """
-    Second step: Uses model_type and version to validate input, 
-    generate random values if needed, and perform the prediction.
-    """
+    """Handles model selection, input validation, and runs prediction."""
 
     model_key = f"{input_data.model_type} {input_data.version}"
 
@@ -406,32 +403,35 @@ def predict(input_data: PredictionInput):
     if model_key not in models:
         raise HTTPException(status_code=404, detail="Model not found or unavailable")
 
-    # Determine required input length
+    # Check expected number of features
     expected_length = EXPECTED_INPUTS.get(input_data.version)
     if expected_length is None:
         raise HTTPException(status_code=400, detail="Unsupported model version")
 
-    # Handle "random" feature generation
+    # Extracting features properly
     if isinstance(input_data.features, str) and input_data.features.lower() == "random":
+        # Generate random values
         input_features = [round(random.uniform(-10, 10), 5) for _ in range(expected_length)]
+        print(f"🔀 Generated Random Features: {input_features}")  # Debugging
     else:
-        input_features = input_data.features
+        # Convert dictionary `{ "1": value, "2": value, ... }` to a **sorted list** of values
+        input_features = [input_data.features[str(i + 1)] for i in range(expected_length)]
 
-    # Validate feature length
+    # Validate input length
     if len(input_features) != expected_length:
         raise HTTPException(
             status_code=400,
             detail=f"Incorrect number of features. Expected {expected_length}, but got {len(input_features)}."
         )
 
-    # Convert input to JSON and save temporarily
+    # Convert input data into a JSON format
     input_json = {"values": input_features}
     json_filename = "data.json"
-    
+
     with open(json_filename, "w") as f:
         json.dump(input_json, f)
 
-    # Load the model
+    # Load the corresponding model
     model_path = models[model_key]["model"]
     
     try:
@@ -439,7 +439,7 @@ def predict(input_data: PredictionInput):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error loading model: {str(e)}")
 
-    # Convert input features to NumPy array and predict
+    # Convert input features into NumPy array and predict
     feature_array = np.array(input_features).reshape(1, -1)
     prediction = model.predict(feature_array)
 
@@ -449,6 +449,7 @@ def predict(input_data: PredictionInput):
         "input_features": input_features,
         "prediction": prediction.tolist()
     }
+
 
     
 if __name__ == "__main__":
