@@ -360,20 +360,12 @@ EXPECTED_INPUTS = {
     "2.0": 23
 }
 
-# ✅ Use `RootModel` Instead of `BaseModel`
-class FeaturesV1(RootModel):
-    """Defines exactly 9 inputs for version 1.0"""
-    root: Dict[int, float] = Field(..., example={i: 0.0 for i in range(1, 10)})
-
-class FeaturesV2(RootModel):
-    """Defines exactly 23 inputs for version 2.0"""
-    root: Dict[int, float] = Field(..., example={i: 0.0 for i in range(1, 24)})
-
 class PredictionInput(BaseModel):
     model_type: str
     version: str
-    features: Union[FeaturesV1, FeaturesV2, str] = Field(
-        ..., description="Feature values as a numbered dictionary (1 to 9 or 1 to 23), or 'random'"
+    features: Dict[int, float] = Field(
+        ..., 
+        description="Feature values as a numbered dictionary (1 to 9 for version 1.0, 1 to 23 for version 2.0)."
     )
 
     @classmethod
@@ -412,7 +404,8 @@ def predict(input_data: PredictionInput):
         raise HTTPException(status_code=404, detail="Model not found or unavailable")
 
     # Extract and sort input features
-    input_features = [input_data.features.root[i + 1] for i in range(EXPECTED_INPUTS[input_data.version])]
+    expected_length = EXPECTED_INPUTS[input_data.version]
+    input_features = [input_data.features.get(i + 1, 0) for i in range(expected_length)]
 
     # Convert input data into a JSON format
     input_json = {"values": input_features}
