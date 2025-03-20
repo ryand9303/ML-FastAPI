@@ -300,7 +300,7 @@ def load_models():
             model_availability[model_key] = True  # Mark as available
             print(f"✅ Loaded {model_key} successfully!")
 
-        except Exception as e:
+            except Exception as e:
             print(f"❌ Error loading {model_key}: {e}")
             model_availability[model_key] = False  # Mark as unavailable
                 continue
@@ -390,7 +390,7 @@ def get_model_performance_metrics(model_type: str, version: str):
 def get_data_summary():
     """Returns a summary of all features and targets available across models."""
     summary = {}
-    
+
     for model_key, data in data_summary.items():
         summary[model_key] = {
             "features": data.get("features", []),
