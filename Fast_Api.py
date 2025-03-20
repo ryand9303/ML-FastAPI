@@ -354,36 +354,75 @@ def get_data_summary():
     """Returns a summary of all features and targets available across models."""
     return data_summary
 
-# Define prediction input format
+# Define expected input lengths
+EXPECTED_INPUTS = {
+    "1.0": 9,
+    "2.0": 23
+}
+
+# Define prediction request structure
 class PredictionInput(BaseModel):
     model_type: str
     version: str
-    features: Dict[str, float]
+    features: Union[List[float], str] = Field(..., description="List of numerical feature values or 'random'")
+
+app = FastAPI()
 
 @app.post("/predict")
 def predict(input_data: PredictionInput):
-    """Takes a model_type, version, and feature values, runs prediction, and returns target values."""
+    """Handles model selection, validation of input length, random generation, and prediction."""
+    
     model_key = f"{input_data.model_type} {input_data.version}"
-    features = input_data.features
 
+    # Validate model existence
     if model_key not in models:
         raise HTTPException(status_code=404, detail="Model not found or unavailable")
 
-    # Ensure all required features are provided
-    required_features = models[model_key]["features"].get("features", [])
-    missing_features = [f for f in required_features if f not in features]
+    # Check expected number of features
+    expected_length = EXPECTED_INPUTS.get(input_data.version)
+    
+    if expected_length is None:
+        raise HTTPException(status_code=400, detail="Unsupported model version")
+    
+    # Generate random values if user inputs "random"
+    if isinstance(input_data.features, str) and input_data.features.lower() == "random":
+        input_features = [round(random.uniform(-10, 10), 5) for _ in range(expected_length)]
+        print(f"🔀 Generated Random Features: {input_features}")  # Debugging
+    else:
+        input_features = input_data.features
 
-    if missing_features:
-        raise HTTPException(status_code=400, detail=f"Missing features: {missing_features}")
+    # Ensure input length is correct
+    if len(input_features) != expected_length:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Incorrect number of features. Expected {expected_length}, but got {len(input_features)}."
+        )
 
-    # Convert input features to NumPy array
-    feature_array = np.array([features[f] for f in required_features]).reshape(1, -1)
+    # Convert input data into a JSON format
+    input_json = {"values": input_features}
+    json_filename = "data.json"
+    
+    with open(json_filename, "w") as f:
+        json.dump(input_json, f)
 
-    # Get model and predict
-    model = models[model_key]["model"]
+    # Load the corresponding model
+    model_path = models[model_key]["model"]
+    
+    try:
+        model = joblib.load(model_path)  # Load the correct .pkl file
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error loading model: {str(e)}")
+
+    # Convert input features into NumPy array and predict
+    feature_array = np.array(input_features).reshape(1, -1)
     prediction = model.predict(feature_array)
 
-    return {models[model_key]["features"]["targets"][i]: prediction[i] for i in range(len(prediction))}
+    return {
+        "model_type": input_data.model_type,
+        "version": input_data.version,
+        "input_features": input_features,
+        "prediction": prediction.tolist()
+    }
     
 if __name__ == "__main__":
     import uvicorn
