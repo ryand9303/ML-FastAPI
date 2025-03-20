@@ -331,6 +331,93 @@ def predict(input_data: PredictionInput):
         "input_features": feature_values,
         "prediction": prediction.tolist()
     }
+# @app.post("/predict")
+# def predict(input_data: PredictionInput):
+#     """Takes a model_type, version, and feature values, runs prediction, and returns target values."""
+#     model_key = f"{input_data.model_type} {input_data.version}"
+#     features = input_data.features
+
+#     if model_key not in models:
+#         raise HTTPException(status_code=404, detail="Model not found or unavailable")
+
+#     # Ensure all required features are provided
+#     required_features = models[model_key]["features"].get("features", [])
+#     missing_features = [f for f in required_features if f not in features]
+
+#     if missing_features:
+#         raise HTTPException(status_code=400, detail=f"Missing features: {missing_features}")
+
+#     # Convert input features to NumPy array
+#     feature_array = np.array([features[f] for f in required_features]).reshape(1, -1)
+
+#     # Get model and predict
+#     model = models[model_key]["model"]
+#     prediction = model.predict(feature_array)
+
+#     return {models[model_key]["features"]["targets"][i]: prediction[i] for i in range(len(prediction))}
+    
+# if __name__ == "__main__":
+#     import uvicorn
+#     uvicorn.run(app, host="127.0.0.1", port=5555)
+
+# @app.get("/predict")
+# def predict(
+#     model_type: str,
+#     version: str,
+#     use_random: Optional[bool] = False,
+#     feature_values: Optional[List[float]] = None
+# ):
+#     """Handles model selection, input validation, and runs prediction."""
+    
+#     model_key = f"{model_type} {version}"
+
+#     # Validate model existence
+#     if model_key not in models:
+#         raise HTTPException(status_code=404, detail="Model not found or unavailable")
+
+#     features = None
+#     expected_length = 0
+
+#     # Choose which features to work with based on version
+#     if version == "1.0":
+#         expected_length = 9
+#         if use_random:
+#             features = [random.uniform(-10, 10) for _ in range(expected_length)]
+#         elif feature_values is None or len(feature_values) != expected_length:
+#             raise HTTPException(status_code=400, detail="Features for version 1.0 must be provided and must have 9 values.")
+#         else:
+#             features = feature_values
+#     else:
+#         expected_length = 23
+#         if use_random:
+#             features = [random.uniform(-10, 10) for _ in range(expected_length)]
+#         elif feature_values is None or len(feature_values) != expected_length:
+#             raise HTTPException(status_code=400, detail="Features for version 2.0 must be provided and must have 23 values.")
+#         else:
+#             features = feature_values
+
+#     # Convert features into a list for prediction
+#     # No need to call getattr() since we're directly using the list
+#     feature_array = np.array(features).reshape(1, -1)
+
+#     # Load the corresponding model
+#     model_file_path = f"Models/{model_type}/{version}/tuned_multi_output_model{version}.pkl"
+#     try:
+#         model = joblib.load(model_file_path)
+#     except Exception as e:
+#         raise HTTPException(status_code=500, detail=f"Error loading model: {str(e)}")
+
+#     # Make prediction
+#     prediction = model.predict(feature_array)
+
+#     return {
+#         "model_type": model_type,
+#         "version": version,
+#         "input_features": features,
+#         "prediction": prediction.tolist()
+#     }
+
+
 
 GITHUB_PLOTS_URL = "https://raw.githubusercontent.com/ryand9303/ML-FastAPI/main/Plots"
 
