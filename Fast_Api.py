@@ -194,6 +194,7 @@ import json
 import requests  # To download files from GitHub
 import pandas as pd
 from io import BytesIO
+import os
 from fastapi.middleware.cors import CORSMiddleware
 
 # FastAPI Setup
@@ -223,11 +224,11 @@ models = {}
 model_availability = {}  # Dictionary to store model availability status
 data_summary = {}  # Store feature and target type information
 
+# Function to download files from GitHub
 def download_file_from_github(model_type, model_version, filename):
     """Download a file from GitHub and check if it exists."""
     
-    # Ensure model type names are correctly formatted for URLs
-    model_type_encoded = model_type.replace(" ", "%20")  
+    model_type_encoded = model_type.replace(" ", "%20")  # Encode spaces for URLs
     url = f"{GITHUB_REPO_URL}/{model_type_encoded}/{model_version}/{filename}"
     
     print(f"🔗 Attempting to download: {url}")  # Debugging
@@ -235,11 +236,12 @@ def download_file_from_github(model_type, model_version, filename):
 
     if response.status_code == 200 and "text/html" not in response.headers.get("Content-Type", ""):
         print(f"✅ Successfully downloaded {filename} for {model_type} {model_version}")  
-        return response.content  # Ensures binary content is returned
+        return BytesIO(response.content)  # Return binary content as BytesIO
     else:
         print(f"⚠️ Warning: Could not download {filename} for {model_type} {model_version} (Status: {response.status_code})")  
         return None
 
+# Function to load models from GitHub
 def load_models():
     """Download and load models from GitHub dynamically, checking availability."""
     for model in MODELS:
@@ -260,23 +262,29 @@ def load_models():
             features_content = download_file_from_github(model_type, model_version, feature_file)
             metrics_content = download_file_from_github(model_type, model_version, metrics_file)
 
-            # Check if files exist
+            # Check if all files exist
             if not all([model_content, features_content, metrics_content]):
                 print(f"⚠️ Model {model_key} is missing files. Marking as unavailable.")
                 model_availability[model_key] = False
                 continue
 
-            # Deserialize files safely
+            # Save model file temporarily before loading
+            temp_model_path = f"temp_model_{model_version}.pkl"
+            with open(temp_model_path, "wb") as f:
+                f.write(model_content.getbuffer())
+
+            # Load the model from file
             try:
                 print(f"📦 Unpacking model {model_key}")
-                model_obj = joblib.load(BytesIO(model_content))  # ✅ Use joblib instead of pickle
+                model_obj = joblib.load(temp_model_path)  # ✅ Use joblib
             except Exception as e:
                 print(f"❌ Unpickling failed for {model_key}: {e}")
                 model_availability[model_key] = False
                 continue
 
-            features = json.loads(features_content)
-            performance_metrics = json.loads(metrics_content)
+            # Load JSON data properly
+            features = json.loads(features_content.read().decode("utf-8"))
+            performance_metrics = json.loads(metrics_content.read().decode("utf-8"))
 
             # Store in memory
             models[model_key] = {
@@ -369,14 +377,13 @@ def predict(input_data: PredictionInput):
     # Ensure output format matches expected targets
     targets = models[model_key]["features"].get("targets", [])
     
-    if not isinstance(prediction, (list, np.ndarray)):
-        prediction = [prediction]  # Convert scalar to list
-    
-    if len(prediction) != len(targets):
-        raise HTTPException(status_code=500, detail=f"Model output does not match expected targets. Output: {prediction}")
+    if len(prediction[0]) != len(targets):
+        raise HTTPException(status_code=500, detail="Model output does not match expected targets.")
 
     # Return predictions as JSON
-    return {targets[i]: prediction[i] for i in range(len(targets))}
+    return {targets[i]: prediction[0][i] for i in range(len(targets))}
 
 if __name__ == "__main__":
+    import uvicorn
     uvicorn.run(app, host="127.0.0.1", port=5555)
+
