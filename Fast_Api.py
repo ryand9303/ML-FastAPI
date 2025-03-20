@@ -359,6 +359,23 @@ class PredictionInput(BaseModel):
     model_type: str
     version: str
     features: List[float] = Field(..., description="Numerical features for prediction.")
+    
+@app.get("/getFeatureTemplate/{model_type}/{version}")
+def get_feature_template(model_type: str, version: str):
+    """Returns a template for input features based on the model type and version."""
+    
+    expected_length = EXPECTED_INPUTS.get(version)
+    if expected_length is None:
+        raise HTTPException(status_code=400, detail="Invalid model version. Must be '1.0' or '2.0'.")
+
+    # Create a template with zeros
+    features_template = [0.0 for _ in range(expected_length)]
+    
+    return {
+        "model_type": model_type,
+        "version": version,
+        "features": features_template
+    }
 
 @app.post("/predict")
 def predict(input_data: PredictionInput):
@@ -374,7 +391,7 @@ def predict(input_data: PredictionInput):
     if expected_length is None or len(input_data.features) != expected_length:
         raise HTTPException(status_code=400, detail=f"Expected {expected_length} features for version {input_data.version}.")
 
-    # Create a dictionary for the input values
+    # Save to data.json as before...
     input_json = {"values": input_data.features}
     
     # Save to data.json
@@ -382,14 +399,14 @@ def predict(input_data: PredictionInput):
     with open(json_filename, "w") as f:
         json.dump(input_json, f)
 
-    # Load the corresponding model based on the type and version
+    # Load the model
     model_file_path = f"Models/{input_data.model_type}/{input_data.version}/tuned_multi_output_model{input_data.version}.pkl"
     try:
         model = joblib.load(model_file_path)
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error loading model: {str(e)}")
 
-    # Convert input features into NumPy array and predict
+    # Make prediction
     feature_array = np.array(input_data.features).reshape(1, -1)
     prediction = model.predict(feature_array)
 
@@ -399,7 +416,6 @@ def predict(input_data: PredictionInput):
         "input_features": input_data.features,
         "prediction": prediction.tolist()
     }
-
 
     
 if __name__ == "__main__":
