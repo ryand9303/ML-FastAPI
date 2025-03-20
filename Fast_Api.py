@@ -238,7 +238,7 @@ class PredictionInput(BaseModel):
     features_1: Optional[Features1] = None
     features_2: Optional[Features2] = None
 
-@app.post("/predict")
+@app.post("/predict")     # change into a get file and get inputs externally from the UI and not internally created
 def predict(input_data: PredictionInput):
     """Handles model selection, input validation, and runs prediction."""
     
