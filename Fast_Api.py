@@ -355,43 +355,10 @@ def get_data_summary():
     """Returns a summary of all features and targets available across models."""
     return data_summary
 
-# Define expected input sizes
-EXPECTED_INPUTS = {
-    "1.0": 9,
-    "2.0": 23
-}
-
-class ModelSelection(BaseModel):
-    model_type: str
-    version: str
-
-@app.post("/PredictionInput")
-def prediction_input(selection: ModelSelection):
-    """
-    First step: Takes model type and version, 
-    returns a JSON object with the correct number of feature slots.
-    """
-    
-    version = selection.version
-
-    if version not in EXPECTED_INPUTS:
-        raise HTTPException(status_code=400, detail="Invalid model version. Must be '1.0' or '2.0'.")
-
-    # Create a dictionary with numbered feature keys
-    features_template = {str(i + 1): 0.0 for i in range(EXPECTED_INPUTS[version])}
-
-    return {
-        "model_type": selection.model_type,
-        "version": version,
-        "features": features_template
-    }
-
-
-# Define prediction input format
 class PredictionInput(BaseModel):
     model_type: str
     version: str
-    features: Union[List[float], str] = Field(..., description="Numerical features or 'random'.")
+    features: List[float] = Field(..., description="Numerical features for prediction.")
 
 @app.post("/predict")
 def predict(input_data: PredictionInput):
@@ -403,50 +370,33 @@ def predict(input_data: PredictionInput):
     if model_key not in models:
         raise HTTPException(status_code=404, detail="Model not found or unavailable")
 
-    # Check expected number of features
     expected_length = EXPECTED_INPUTS.get(input_data.version)
-    if expected_length is None:
-        raise HTTPException(status_code=400, detail="Unsupported model version")
+    if expected_length is None or len(input_data.features) != expected_length:
+        raise HTTPException(status_code=400, detail=f"Expected {expected_length} features for version {input_data.version}.")
 
-    # Extracting features properly
-    if isinstance(input_data.features, str) and input_data.features.lower() == "random":
-        # Generate random values
-        input_features = [round(random.uniform(-10, 10), 5) for _ in range(expected_length)]
-        print(f"🔀 Generated Random Features: {input_features}")  # Debugging
-    else:
-        # Convert dictionary `{ "1": value, "2": value, ... }` to a **sorted list** of values
-        input_features = [input_data.features[str(i + 1)] for i in range(expected_length)]
-
-    # Validate input length
-    if len(input_features) != expected_length:
-        raise HTTPException(
-            status_code=400,
-            detail=f"Incorrect number of features. Expected {expected_length}, but got {len(input_features)}."
-        )
-
-    # Convert input data into a JSON format
-    input_json = {"values": input_features}
-    json_filename = "data.json"
-
+    # Create a dictionary for the input values
+    input_json = {"values": input_data.features}
+    
+    # Save to data.json
+    json_filename = 'data.json'
     with open(json_filename, "w") as f:
         json.dump(input_json, f)
 
-    # Load the corresponding model
-    model_path = models[model_key]["model"]
-    
+    # Load the corresponding model based on the type and version
+    model_file_path = f"Models/{input_data.model_type}/{input_data.version}/tuned_multi_output_model{input_data.version}.pkl"
     try:
-        model = joblib.load(model_path)  # Load the correct .pkl file
+        model = joblib.load(model_file_path)
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error loading model: {str(e)}")
 
     # Convert input features into NumPy array and predict
-    feature_array = np.array(input_features).reshape(1, -1)
+    feature_array = np.array(input_data.features).reshape(1, -1)
     prediction = model.predict(feature_array)
 
     return {
         "model_type": input_data.model_type,
         "version": input_data.version,
-        "input_features": input_features,
+        "input_features": input_data.features,
         "prediction": prediction.tolist()
     }
 
