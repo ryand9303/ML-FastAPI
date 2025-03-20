@@ -360,15 +360,24 @@ EXPECTED_INPUTS = {
     "2.0": 23
 }
 
-# ✅ Modify the PredictionInput class
+# ✅ Define Feature Models for Each Version
+class FeaturesV1(BaseModel):
+    """Defines exactly 9 inputs for version 1.0"""
+    __root__: Dict[int, float] = Field(..., example={i: 0.0 for i in range(1, 10)})
+
+class FeaturesV2(BaseModel):
+    """Defines exactly 23 inputs for version 2.0"""
+    __root__: Dict[int, float] = Field(..., example={i: 0.0 for i in range(1, 24)})
+
+# ✅ Define Prediction Input Model
 class PredictionInput(BaseModel):
     model_type: str
     version: str
-    features: Union[Dict[int, float], str] = Field(..., description="Dictionary of feature values indexed from 1, or 'random'")
+    features: Union[FeaturesV1, FeaturesV2, str] = Field(..., description="Feature values as a numbered dictionary (1 to 9 or 1 to 23), or 'random'")
 
     @root_validator(pre=True)
     def validate_features(cls, values):
-        """Validate and adjust the number of required features based on the version."""
+        """Validate features based on the version (9 or 23 inputs)."""
         version = values.get("version")
         expected_length = EXPECTED_INPUTS.get(version)
 
@@ -403,7 +412,7 @@ def predict(input_data: PredictionInput):
         raise HTTPException(status_code=404, detail="Model not found or unavailable")
 
     # Extract and sort input features
-    input_features = [input_data.features[i + 1] for i in range(EXPECTED_INPUTS[input_data.version])]
+    input_features = [input_data.features.__root__[i + 1] for i in range(EXPECTED_INPUTS[input_data.version])]
 
     # Convert input data into a JSON format
     input_json = {"values": input_features}
