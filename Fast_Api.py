@@ -365,11 +365,11 @@ def predict(input_data: PredictionInput):
         raise HTTPException(status_code=404, detail="Model not found or unavailable")
 
     # Ensure all required features are provided
-    required_features = models[model_key]["features"].get("features", [])
-    missing_features = [f for f in required_features if f not in features]
+    #required_features = models[model_key]["features"].get("features", [])
+    #missing_features = [f for f in required_features if f not in features]
 
-    if missing_features:
-        raise HTTPException(status_code=400, detail=f"Missing features: {missing_features}")
+    #if missing_features:
+        #raise HTTPException(status_code=400, detail=f"Missing features: {missing_features}")
 
     # Convert input features to NumPy array
     feature_array = np.array([features[f] for f in required_features]).reshape(1, -1)
