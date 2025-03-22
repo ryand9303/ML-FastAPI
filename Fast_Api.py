@@ -1,3 +1,4 @@
+pip install python-multipart
 from fastapi import FastAPI, HTTPException, UploadFile, File
 from pydantic import BaseModel, Field, RootModel
 from typing import Dict, List, Union, Optional
