@@ -237,186 +237,63 @@ class PredictionInput(BaseModel):
     use_random: Optional[bool] = Field(default=False, description="Set to true to use random feature values.")
     features_1: Optional[Features1] = None
     features_2: Optional[Features2] = None
-
-@app.post("/predict")     # change into a get file and get inputs externally from the UI and not internally created
-def predict(input_data: PredictionInput):
-    """Handles model selection, input validation, and runs prediction."""
+@app.get("/predict")
+async def predict_csv(
+    model_type: str,
+    version: str,
+    file: UploadFile = File(...),
+):
+    """Handles model selection, CSV file processing, PCA, and runs prediction."""
     
-    model_key = f"{input_data.model_type} {input_data.version}"
+    model_key = f"{model_type} {version}"
 
     # Validate model existence
     if model_key not in models:
         raise HTTPException(status_code=404, detail="Model not found or unavailable")
 
-    features = None
-    expected_length = 0
-
-    # Choose which features to work with based on version
-    if input_data.version == "1.0":
-        expected_length = 9
-        if input_data.use_random:
-            features = Features1(
-                feature_1=random.uniform(-10, 10),
-                feature_2=random.uniform(-10, 10),
-                feature_3=random.uniform(-10, 10),
-                feature_4=random.uniform(-10, 10),
-                feature_5=random.uniform(-10, 10),
-                feature_6=random.uniform(-10, 10),
-                feature_7=random.uniform(-10, 10),
-                feature_8=random.uniform(-10, 10),
-                feature_9=random.uniform(-10, 10)
-            )
-        elif input_data.features_1 is None:
-            raise HTTPException(status_code=400, detail="Features for version 1.0 must be provided.")
-        else:
-            features = input_data.features_1            
-    else:
-        expected_length = 23
-        if input_data.use_random:
-            features = Features2(
-                feature_1=random.uniform(-10, 10),
-                feature_2=random.uniform(-10, 10),
-                feature_3=random.uniform(-10, 10),
-                feature_4=random.uniform(-10, 10),
-                feature_5=random.uniform(-10, 10),
-                feature_6=random.uniform(-10, 10),
-                feature_7=random.uniform(-10, 10),
-                feature_8=random.uniform(-10, 10),
-                feature_9=random.uniform(-10, 10),
-                feature_10=random.uniform(-10, 10),
-                feature_11=random.uniform(-10, 10),
-                feature_12=random.uniform(-10, 10),
-                feature_13=random.uniform(-10, 10),
-                feature_14=random.uniform(-10, 10),
-                feature_15=random.uniform(-10, 10),
-                feature_16=random.uniform(-10, 10),
-                feature_17=random.uniform(-10, 10),
-                feature_18=random.uniform(-10, 10),
-                feature_19=random.uniform(-10, 10),
-                feature_20=random.uniform(-10, 10),
-                feature_21=random.uniform(-10, 10),
-                feature_22=random.uniform(-10, 10),
-                feature_23=random.uniform(-10, 10)
-            )
-        elif input_data.features_2 is None:
-            raise HTTPException(status_code=400, detail="Features for version 2.0 must be provided.")
-        else:
-            features = input_data.features_2
-
-    # Convert features into a list for prediction
-    feature_values = [getattr(features, f"feature_{i + 1}") for i in range(expected_length)]
-
-    # Save to data.json as before
-    input_json = {"values": feature_values}
+    # Read CSV content
+    contents = await file.read()
+    df = pd.read_csv(StringIO(contents.decode('utf-8')))
     
-    # Save to data.json
-    json_filename = 'data.json'
-    with open(json_filename, "w") as f:
-        json.dump(input_json, f)
-
-    # Load the corresponding model
-    model_file_path = f"Models/{input_data.model_type}/{input_data.version}/tuned_multi_output_model{input_data.version}.pkl"
-    try:
-        model = joblib.load(model_file_path)
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error loading model: {str(e)}")
-
-    # Convert input features into NumPy array and predict
-    feature_array = np.array(feature_values).reshape(1, -1)
-    prediction = model.predict(feature_array)
-
-    return {
-        "model_type": input_data.model_type,
-        "version": input_data.version,
-        "input_features": feature_values,
-        "prediction": prediction.tolist()
-    }
-# @app.post("/predict")
-# def predict(input_data: PredictionInput):
-#     """Takes a model_type, version, and feature values, runs prediction, and returns target values."""
-#     model_key = f"{input_data.model_type} {input_data.version}"
-#     features = input_data.features
-
-#     if model_key not in models:
-#         raise HTTPException(status_code=404, detail="Model not found or unavailable")
-
-#     # Ensure all required features are provided
-#     required_features = models[model_key]["features"].get("features", [])
-#     missing_features = [f for f in required_features if f not in features]
-
-#     if missing_features:
-#         raise HTTPException(status_code=400, detail=f"Missing features: {missing_features}")
-
-#     # Convert input features to NumPy array
-#     feature_array = np.array([features[f] for f in required_features]).reshape(1, -1)
-
-#     # Get model and predict
-#     model = models[model_key]["model"]
-#     prediction = model.predict(feature_array)
-
-#     return {models[model_key]["features"]["targets"][i]: prediction[i] for i in range(len(prediction))}
+    # Check if the first column contains the features
+    features = df.columns.tolist()
+    if features[0] != 'features':
+        raise HTTPException(status_code=400, detail="CSV must have 'features' in the first column")
     
-# if __name__ == "__main__":
-#     import uvicorn
-#     uvicorn.run(app, host="127.0.0.1", port=5555)
-
-# @app.get("/predict")
-# def predict(
-#     model_type: str,
-#     version: str,
-#     use_random: Optional[bool] = False,
-#     feature_values: Optional[List[float]] = None
-# ):
-#     """Handles model selection, input validation, and runs prediction."""
+    # Get the feature columns and values columns
+    feature_names = features[1:]  # All columns except the first one (features)
+    feature_values = df[feature_names].values  # All values of the features
     
-#     model_key = f"{model_type} {version}"
+    # Prepare PCA based on the version
+    pca = PCA(n_components=9 if version == "1.0" else 23)
+    
+    # Perform PCA on the feature values to get the desired number of components
+    pca_result = pca.fit_transform(feature_values)
 
-#     # Validate model existence
-#     if model_key not in models:
-#         raise HTTPException(status_code=404, detail="Model not found or unavailable")
+    predictions = []
+    for column_idx in range(pca_result.shape[1]):
+        # Select a column of PCA results to use for prediction
+        pca_features = pca_result[:, column_idx].reshape(1, -1)
 
-#     features = None
-#     expected_length = 0
+        # Load the model for prediction
+        model_file_path = f"Models/{model_type}/{version}/tuned_multi_output_model{version}.pkl"
+        try:
+            model = joblib.load(model_file_path)
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"Error loading model: {str(e)}")
 
-#     # Choose which features to work with based on version
-#     if version == "1.0":
-#         expected_length = 9
-#         if use_random:
-#             features = [random.uniform(-10, 10) for _ in range(expected_length)]
-#         elif feature_values is None or len(feature_values) != expected_length:
-#             raise HTTPException(status_code=400, detail="Features for version 1.0 must be provided and must have 9 values.")
-#         else:
-#             features = feature_values
-#     else:
-#         expected_length = 23
-#         if use_random:
-#             features = [random.uniform(-10, 10) for _ in range(expected_length)]
-#         elif feature_values is None or len(feature_values) != expected_length:
-#             raise HTTPException(status_code=400, detail="Features for version 2.0 must be provided and must have 23 values.")
-#         else:
-#             features = feature_values
+        # Predict with the model
+        prediction = model.predict(pca_features)
 
-#     # Convert features into a list for prediction
-#     # No need to call getattr() since we're directly using the list
-#     feature_array = np.array(features).reshape(1, -1)
-
-#     # Load the corresponding model
-#     model_file_path = f"Models/{model_type}/{version}/tuned_multi_output_model{version}.pkl"
-#     try:
-#         model = joblib.load(model_file_path)
-#     except Exception as e:
-#         raise HTTPException(status_code=500, detail=f"Error loading model: {str(e)}")
-
-#     # Make prediction
-#     prediction = model.predict(feature_array)
-
-#     return {
-#         "model_type": model_type,
-#         "version": version,
-#         "input_features": features,
-#         "prediction": prediction.tolist()
-#     }
-
+        # Add result to the list
+        predictions.append({
+            "model_type": model_type,
+            "version": version,
+            "input_features": pca_features.tolist(),
+            "prediction": prediction.tolist()
+        })
+    
+    return {"predictions": predictions}
 
 
 GITHUB_PLOTS_URL = "https://raw.githubusercontent.com/ryand9303/ML-FastAPI/main/Plots"
