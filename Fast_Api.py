@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, UploadFile, File
 from pydantic import BaseModel, Field, RootModel
 from typing import Dict, List, Union, Optional
 import joblib
@@ -13,6 +13,8 @@ import pickle
 import os
 import plotly.express as px
 import plotly.io as pio
+from sklearn.decomposition import PCA
+from io import StringIO
 
 
 # FastAPI Setup
