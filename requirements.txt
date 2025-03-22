@@ -7,5 +7,4 @@ pandas
 requests
 typing
 scikit-learn
-sklearn
 
