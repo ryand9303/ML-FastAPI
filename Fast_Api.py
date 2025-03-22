@@ -7,14 +7,13 @@ import json
 import requests
 import pandas as pd
 import random
-from io import BytesIO
+from io import BytesIO, StringIO
 from fastapi.middleware.cors import CORSMiddleware
 import pickle
 import os
 import plotly.express as px
 import plotly.io as pio
 from sklearn.decomposition import PCA
-from io import StringIO
 
 
 # FastAPI Setup
