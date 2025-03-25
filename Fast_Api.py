@@ -205,29 +205,24 @@ def get_data_summary():
 class PredictionInput(BaseModel):
     model_type: str
     version: str
-    csv_data: str  # Base64-encoded CSV data (received in query)
+    data: dict  # Expecting the JSON to contain 'features' and 'values'
 
-@app.get("/predict")
-async def predict(model_type: str, version: str, csv_data: str):
+@app.post("/predict")
+def predict(input_data: PredictionInput):
     """Handles model selection, input validation, and runs prediction."""
 
-    # Step 1: Decode the base64-encoded CSV string
-    try:
-        csv_data_bytes = base64.b64decode(csv_data)
-        csv_io = io.BytesIO(csv_data_bytes)
-        df = pd.read_csv(csv_io)
-    except Exception as e:
-        raise HTTPException(status_code=400, detail=f"Invalid CSV format: {str(e)}")
+    model_type = input_data.model_type
+    version = input_data.version
+    data = input_data.data
 
-    # Step 2: Check if CSV has "Feature" and "Value" columns
-    if "Feature" not in df.columns or "Value" not in df.columns:
-        raise HTTPException(status_code=400, detail="CSV must contain 'Feature' and 'Value' columns.")
+    # Step 1: Validate the JSON structure
+    if "features" not in data or "values" not in data:
+        raise HTTPException(status_code=400, detail="JSON must contain 'features' and 'values' keys.")
+    
+    features = data["features"]  # List of feature names
+    values = data["values"]  # List of corresponding feature values
 
-    # Step 3: Convert the CSV data into a dictionary of features and values
-    features = df["Feature"].tolist()  # List of feature names
-    values = df["Value"].tolist()  # List of corresponding feature values
-
-    # Step 4: Perform PCA based on the version (9 components for version 1.0, 23 for version 2.0)
+    # Step 2: Perform PCA based on the version (9 components for version 1.0, 23 for version 2.0)
     expected_length = 9 if version == "1.0" else 23
     pca = PCA(n_components=expected_length)
     
@@ -240,14 +235,14 @@ async def predict(model_type: str, version: str, csv_data: str):
     except Exception as e:
         raise HTTPException(status_code=400, detail=f"Error during PCA transformation: {str(e)}")
 
-    # Step 5: Load the corresponding model
+    # Step 3: Load the corresponding model
     model_file_path = f"Models/{model_type}/{version}/tuned_multi_output_model{version}.pkl"
     try:
         model = joblib.load(model_file_path)
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error loading model: {str(e)}")
 
-    # Step 6: Make predictions using PCA-transformed features
+    # Step 4: Make predictions using PCA-transformed features
     predictions = []
     for column_idx in range(pca_result.shape[1]):
         pca_features = pca_result[:, column_idx].reshape(1, -1)
@@ -262,7 +257,7 @@ async def predict(model_type: str, version: str, csv_data: str):
             "prediction": prediction.tolist()
         })
     
-    # Step 7: Return predictions as JSON
+    # Step 5: Return predictions as JSON
     return {"predictions": predictions}
 
 
