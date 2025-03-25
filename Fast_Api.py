@@ -16,6 +16,7 @@ import plotly.express as px
 import plotly.io as pio
 from sklearn.decomposition import PCA
 from sklearn.preprocessing import StandardScaler
+import base64
 
 
 
@@ -199,99 +200,63 @@ def get_data_summary():
     return summary
 
 
-# Define the labeled features for version 1.0 and version 2.0
-class Features1(BaseModel):
-    feature_1: float
-    feature_2: float
-    feature_3: float
-    feature_4: float
-    feature_5: float
-    feature_6: float
-    feature_7: float
-    feature_8: float
-    feature_9: float
 
-class Features2(BaseModel):
-    feature_1: float
-    feature_2: float
-    feature_3: float
-    feature_4: float
-    feature_5: float
-    feature_6: float
-    feature_7: float
-    feature_8: float
-    feature_9: float
-    feature_10: float
-    feature_11: float
-    feature_12: float
-    feature_13: float
-    feature_14: float
-    feature_15: float
-    feature_16: float
-    feature_17: float
-    feature_18: float
-    feature_19: float
-    feature_20: float
-    feature_21: float
-    feature_22: float
-    feature_23: float
 
 class PredictionInput(BaseModel):
     model_type: str
     version: str
-    use_random: Optional[bool] = Field(default=False, description="Set to true to use random feature values.")
-    features_1: Optional[Features1] = None
-    features_2: Optional[Features2] = None
-    csv_data: str  # Accept the CSV data as a string (instead of a file)
+    csv_data: str  # Base64-encoded CSV data (received in query)
 
 @app.get("/predict")
-async def predict(input_data: PredictionInput):
+async def predict(model_type: str, version: str, csv_data: str):
     """Handles model selection, input validation, and runs prediction."""
-    
-    # Step 1: Convert CSV string to DataFrame
+
+    # Step 1: Decode the base64-encoded CSV string
     try:
-        csv_io = io.StringIO(input_data.csv_data)  # Convert CSV string to file-like object
+        csv_data_bytes = base64.b64decode(csv_data)
+        csv_io = io.BytesIO(csv_data_bytes)
         df = pd.read_csv(csv_io)
     except Exception as e:
         raise HTTPException(status_code=400, detail=f"Invalid CSV format: {str(e)}")
 
-    # Step 2: Ensure first column contains feature names and the rest contains values
-    feature_names = df.columns.tolist()[1:]  # Skip the first column (which is feature names)
-    feature_values = df.iloc[:, 1:].values  # All following columns contain the values
+    # Step 2: Extract features and values
+    feature_names = df.columns.tolist()  # Assuming all columns are features
+    feature_values = df.values  # All rows contain values for the features
 
     # Step 3: Perform PCA based on the version
-    expected_length = 9 if input_data.version == "1.0" else 23
+    expected_length = 9 if version == "1.0" else 23  # 9 components for version 1.0, 23 for version 2.0
     pca = PCA(n_components=expected_length)
     
-    # Perform PCA on the feature values to get the required number of features
-    pca_result = pca.fit_transform(feature_values)
+    try:
+        # Perform PCA on the feature values to get the required number of features
+        pca_result = pca.fit_transform(feature_values)
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Error during PCA transformation: {str(e)}")
 
-    # Step 4: Process each column of PCA-transformed features and make predictions
+    # Step 4: Load the corresponding model
+    model_file_path = f"Models/{model_type}/{version}/tuned_multi_output_model{version}.pkl"
+    try:
+        model = joblib.load(model_file_path)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error loading model: {str(e)}")
+
+    # Step 5: Process each column of PCA-transformed features and make predictions
     predictions = []
     for column_idx in range(pca_result.shape[1]):
         pca_features = pca_result[:, column_idx].reshape(1, -1)
-
-        # Load the corresponding model
-        model_key = f"{input_data.model_type} {input_data.version}"
-        model_file_path = f"Models/{input_data.model_type}/{input_data.version}/tuned_multi_output_model{input_data.version}.pkl"
-        try:
-            model = joblib.load(model_file_path)
-        except Exception as e:
-            raise HTTPException(status_code=500, detail=f"Error loading model: {str(e)}")
 
         # Predict using the model
         prediction = model.predict(pca_features)
 
         predictions.append({
-            "model_type": input_data.model_type,
-            "version": input_data.version,
+            "model_type": model_type,
+            "version": version,
             "input_features": pca_features.tolist(),
             "prediction": prediction.tolist()
         })
     
-    # Step 5: Return predictions as JSON
+    # Step 6: Return predictions as JSON
     return {"predictions": predictions}
-
 
 
 
