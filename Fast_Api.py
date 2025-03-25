@@ -219,28 +219,35 @@ async def predict(model_type: str, version: str, csv_data: str):
     except Exception as e:
         raise HTTPException(status_code=400, detail=f"Invalid CSV format: {str(e)}")
 
-    # Step 2: Extract features and values
-    feature_names = df.columns.tolist()  # Assuming all columns are features
-    feature_values = df.values  # All rows contain values for the features
+    # Step 2: Check if CSV has "Feature" and "Value" columns
+    if "Feature" not in df.columns or "Value" not in df.columns:
+        raise HTTPException(status_code=400, detail="CSV must contain 'Feature' and 'Value' columns.")
 
-    # Step 3: Perform PCA based on the version
-    expected_length = 9 if version == "1.0" else 23  # 9 components for version 1.0, 23 for version 2.0
+    # Step 3: Convert the CSV data into a dictionary of features and values
+    features = df["Feature"].tolist()  # List of feature names
+    values = df["Value"].tolist()  # List of corresponding feature values
+
+    # Step 4: Perform PCA based on the version (9 components for version 1.0, 23 for version 2.0)
+    expected_length = 9 if version == "1.0" else 23
     pca = PCA(n_components=expected_length)
     
+    # Convert values into a 2D array for PCA
+    feature_values = np.array(values).reshape(1, -1)
+
     try:
         # Perform PCA on the feature values to get the required number of features
         pca_result = pca.fit_transform(feature_values)
     except Exception as e:
         raise HTTPException(status_code=400, detail=f"Error during PCA transformation: {str(e)}")
 
-    # Step 4: Load the corresponding model
+    # Step 5: Load the corresponding model
     model_file_path = f"Models/{model_type}/{version}/tuned_multi_output_model{version}.pkl"
     try:
         model = joblib.load(model_file_path)
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error loading model: {str(e)}")
 
-    # Step 5: Process each column of PCA-transformed features and make predictions
+    # Step 6: Make predictions using PCA-transformed features
     predictions = []
     for column_idx in range(pca_result.shape[1]):
         pca_features = pca_result[:, column_idx].reshape(1, -1)
@@ -255,9 +262,8 @@ async def predict(model_type: str, version: str, csv_data: str):
             "prediction": prediction.tolist()
         })
     
-    # Step 6: Return predictions as JSON
+    # Step 7: Return predictions as JSON
     return {"predictions": predictions}
-
 
 
 GITHUB_PLOTS_URL = "https://raw.githubusercontent.com/ryand9303/ML-FastAPI/main/Plots"
