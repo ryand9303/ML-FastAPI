@@ -14,6 +14,8 @@ import os
 import plotly.express as px
 import plotly.io as pio
 from sklearn.decomposition import PCA
+from sklearn.preprocessing import StandardScaler
+
 
 
 
@@ -239,29 +241,31 @@ class PredictionInput(BaseModel):
     use_random: Optional[bool] = Field(default=False, description="Set to true to use random feature values.")
     features_1: Optional[Features1] = None
     features_2: Optional[Features2] = None
+    csv_data: str  # Accept the CSV data as a string (instead of a file)
 
 @app.get("/predict")
-async def predict(input_data: PredictionInput, csv_data: str):
+async def predict(input_data: PredictionInput):
     """Handles model selection, input validation, and runs prediction."""
     
-    # Convert CSV string to DataFrame
+    # Step 1: Convert CSV string to DataFrame
     try:
-        csv_io = io.StringIO(csv_data)
+        csv_io = io.StringIO(input_data.csv_data)  # Convert CSV string to file-like object
         df = pd.read_csv(csv_io)
     except Exception as e:
-        raise HTTPException(status_code=400, detail="Invalid CSV format.")
-    
-    # Ensure first column contains feature names and the rest contains values
-    feature_names = df.columns.tolist()[1:]  # Skip the first column
+        raise HTTPException(status_code=400, detail=f"Invalid CSV format: {str(e)}")
+
+    # Step 2: Ensure first column contains feature names and the rest contains values
+    feature_names = df.columns.tolist()[1:]  # Skip the first column (which is feature names)
     feature_values = df.iloc[:, 1:].values  # All following columns contain the values
 
-    # Perform PCA based on the version
+    # Step 3: Perform PCA based on the version
     expected_length = 9 if input_data.version == "1.0" else 23
     pca = PCA(n_components=expected_length)
     
     # Perform PCA on the feature values to get the required number of features
     pca_result = pca.fit_transform(feature_values)
 
+    # Step 4: Process each column of PCA-transformed features and make predictions
     predictions = []
     for column_idx in range(pca_result.shape[1]):
         pca_features = pca_result[:, column_idx].reshape(1, -1)
@@ -284,9 +288,8 @@ async def predict(input_data: PredictionInput, csv_data: str):
             "prediction": prediction.tolist()
         })
     
-    # Return predictions as JSON
+    # Step 5: Return predictions as JSON
     return {"predictions": predictions}
-
 
 
 
