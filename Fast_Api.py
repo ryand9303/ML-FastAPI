@@ -196,8 +196,6 @@ def get_data_summary():
     return summary
 
 
-app = FastAPI()
-
 # Define the labeled features for version 1.0 and version 2.0
 class Features1(BaseModel):
     feature_1: float
