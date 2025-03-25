@@ -205,61 +205,73 @@ def get_data_summary():
 class PredictionInput(BaseModel):
     model_type: str
     version: str
-    data: dict  # Expecting the JSON to contain 'features' and 'values'
+    data: Dict[str, List]  # A dictionary with 'features' and 'values' keys
 
 @app.post("/predict")
-def predict(input_data: PredictionInput):
+def predict(input_data: List[PredictionInput]):
     """Handles model selection, input validation, and runs prediction."""
 
-    model_type = input_data.model_type
-    version = input_data.version
-    data = input_data.data
-
-    # Step 1: Validate the JSON structure
-    if "features" not in data or "values" not in data:
-        raise HTTPException(status_code=400, detail="JSON must contain 'features' and 'values' keys.")
-    
-    features = data["features"]  # List of feature names
-    values = data["values"]  # List of corresponding feature values
-
-    # Step 2: Perform PCA based on the version (9 components for version 1.0, 23 for version 2.0)
-    expected_length = 9 if version == "1.0" else 23
-    pca = PCA(n_components=expected_length)
-    
-    # Convert values into a 2D array for PCA
-    feature_values = np.array(values).reshape(1, -1)
-
-    try:
-        # Perform PCA on the feature values to get the required number of features
-        pca_result = pca.fit_transform(feature_values)
-    except Exception as e:
-        raise HTTPException(status_code=400, detail=f"Error during PCA transformation: {str(e)}")
-
-    # Step 3: Load the corresponding model
-    model_file_path = f"Models/{model_type}/{version}/tuned_multi_output_model{version}.pkl"
-    try:
-        model = joblib.load(model_file_path)
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error loading model: {str(e)}")
-
-    # Step 4: Make predictions using PCA-transformed features
     predictions = []
-    for column_idx in range(pca_result.shape[1]):
-        pca_features = pca_result[:, column_idx].reshape(1, -1)
 
-        # Predict using the model
-        prediction = model.predict(pca_features)
+    for input_item in input_data:
+        model_type = input_item.model_type
+        version = input_item.version
+        data = input_item.data
 
-        predictions.append({
-            "model_type": model_type,
-            "version": version,
-            "input_features": pca_features.tolist(),
-            "prediction": prediction.tolist()
-        })
-    
-    # Step 5: Return predictions as JSON
+        # Step 1: Validate that the JSON contains 'features' and 'values'
+        if "features" not in data or "values" not in data:
+            raise HTTPException(status_code=400, detail="JSON must contain 'features' and 'values' keys.")
+        
+        features = data["features"]  # List of feature names
+        values = data["values"]  # List of corresponding feature values
+
+        # Step 2: Load pre-trained scaler and PCA
+        try:
+            scaler = joblib.load("scaler.pkl")  # Load the pre-trained scaler
+            pca = joblib.load("pca.pkl")  # Load the pre-trained PCA
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"Error loading scaler or PCA: {str(e)}")
+
+        # Step 3: Check if the number of features matches the expected number for scaling and PCA
+        if len(features) != len(values):
+            raise HTTPException(status_code=400, detail="Features and values lists must have the same length.")
+
+        # Step 4: Prepare feature values for scaling and PCA
+        feature_values = np.array(values).reshape(1, -1)  # Reshape values to fit scaling and PCA
+
+        try:
+            # Apply the scaler to normalize/standardize the feature values
+            scaled_values = scaler.transform(feature_values)
+            
+            # Apply PCA to reduce dimensions based on the version
+            expected_length = 9 if version == "1.0" else 23
+            pca_result = pca.transform(scaled_values)  # Apply PCA to scaled features
+        except Exception as e:
+            raise HTTPException(status_code=400, detail=f"Error during scaling or PCA transformation: {str(e)}")
+
+        # Step 5: Load the corresponding model
+        model_file_path = f"Models/{model_type}/{version}/tuned_multi_output_model{version}.pkl"
+        try:
+            model = joblib.load(model_file_path)  # Load the pre-trained model
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"Error loading model: {str(e)}")
+
+        # Step 6: Make predictions using PCA-transformed features
+        for column_idx in range(pca_result.shape[1]):
+            pca_features = pca_result[:, column_idx].reshape(1, -1)
+
+            # Predict using the model
+            prediction = model.predict(pca_features)
+
+            predictions.append({
+                "model_type": model_type,
+                "version": version,
+                "input_features": pca_features.tolist(),
+                "prediction": prediction.tolist()
+            })
+
+    # Step 7: Return predictions as JSON
     return {"predictions": predictions}
-
 
 GITHUB_PLOTS_URL = "https://raw.githubusercontent.com/ryand9303/ML-FastAPI/main/Plots"
 
