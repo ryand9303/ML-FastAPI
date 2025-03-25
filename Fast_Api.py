@@ -15,17 +15,6 @@ import plotly.express as px
 import plotly.io as pio
 from sklearn.decomposition import PCA
 
-import pandas as pd
-import numpy as np
-import joblib
-from fastapi import FastAPI, HTTPException
-from pydantic import BaseModel, Field
-from typing import Optional
-import io
-import random
-import json
-from sklearn.decomposition import PCA
-
 
 
 # FastAPI Setup
