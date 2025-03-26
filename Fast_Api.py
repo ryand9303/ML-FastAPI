@@ -202,15 +202,21 @@ def get_data_summary():
 
 
 
-class PredictionInput(BaseModel):
-    model_type: str
-    version: str
-    data: Dict[str, List]  # A dictionary with 'features' and 'values' keys
+
+class PredictionData(BaseModel):
+    features: List[str]  # List of feature names
+    values: List[float]  # List of corresponding feature values
+
+
 
 @app.post("/predict")
-def predict(input_data: List[PredictionInput]):
+def predict(
+    model_type: str, 
+    version: str, 
+    input_data: List[PredictionInput]  # List of inputs for each model type, version, and data
+):
     """Handles model selection, input validation, and runs prediction."""
-
+    
     predictions = []
 
     for input_item in input_data:
@@ -222,8 +228,8 @@ def predict(input_data: List[PredictionInput]):
         if "features" not in data or "values" not in data:
             raise HTTPException(status_code=400, detail="JSON must contain 'features' and 'values' keys.")
         
-        features = data["features"]  # List of feature names
-        values = data["values"]  # List of corresponding feature values
+        features = data.features  # List of feature names
+        values = data.values  # List of corresponding feature values
 
         # Step 2: Load pre-trained scaler and PCA
         try:
