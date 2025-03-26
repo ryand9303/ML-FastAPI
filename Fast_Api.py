@@ -243,17 +243,22 @@ async def predict(
         if not data["features"]:
             raise HTTPException(status_code=400, detail="JSON must contain 'features' with corresponding values.")
 
-        # Load pre-trained scaler and PCA
+        # Load pre-trained scaler and PCA for both versions
         try:
             print("Loading scaler and PCA...")
             scaler = joblib.load("scaler.pkl")
-            pca = joblib.load("pca.pkl")
+            pca = joblib.load(f"pca_{version}.pkl")  # Dynamically load the PCA model based on version
         except Exception as e:
             raise HTTPException(status_code=500, detail=f"Error loading scaler or PCA: {str(e)}")
 
         # Convert feature dictionary to list
         features = list(data["features"].values())
         feature_values = np.array(features).reshape(1, -1)  # Reshape if necessary
+
+        # Ensure the input data is of the correct size before proceeding with scaling or PCA
+        expected_input_length = 9 if version == "1.0" else 23
+        if feature_values.shape[1] != expected_input_length:
+            raise HTTPException(status_code=400, detail=f"Input features should have {expected_input_length} features, but it has {feature_values.shape[1]}.")
 
         try:
             print(f"Feature values: {feature_values}")
@@ -289,7 +294,6 @@ async def predict(
             raise HTTPException(status_code=500, detail=f"Error during prediction: {str(e)}")
 
     return {"predictions": predictions}
-
 
 
 
