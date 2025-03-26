@@ -207,15 +207,18 @@ def get_data_summary():
 
 
 
+
+
+
 # Define the structure for the prediction data
 class PredictionData(BaseModel):
-    features: Dict[str, float]  # Features are given as key-value pairs (no change needed)
+    features: Dict[str, float]  # Features are given as key-value pairs
 
 @app.post("/predict")
 async def predict(
     model_type: str, 
     version: str, 
-    file: UploadFile = File(...),  # Accepts the file upload
+    file: UploadFile = File(...)  # Accepts the file upload
 ):
     """Handles model selection, input validation, and runs prediction."""
     
@@ -228,11 +231,16 @@ async def predict(
     
     predictions = []
 
+    # Wrap the incoming JSON data inside "features" to match the structure
+    if isinstance(input_data, dict):  # Single data point
+        input_data = [{"features": input_data}]
+    
     for data in input_data:
-        # Wrap the data in the "features" section
-        features_data = {"features": data}  # Wrap the entire data under "features"
+        if "features" not in data:
+            raise HTTPException(status_code=400, detail="JSON must contain 'features' with corresponding values.")
 
-        if not features_data["features"]:
+        # Ensure features are not empty
+        if not data["features"]:
             raise HTTPException(status_code=400, detail="JSON must contain 'features' with corresponding values.")
 
         # Load pre-trained scaler and PCA
@@ -244,7 +252,7 @@ async def predict(
             raise HTTPException(status_code=500, detail=f"Error loading scaler or PCA: {str(e)}")
 
         # Convert feature dictionary to list
-        features = list(features_data["features"].values())
+        features = list(data["features"].values())
         feature_values = np.array(features).reshape(1, -1)  # Reshape if necessary
 
         try:
@@ -258,7 +266,7 @@ async def predict(
         expected_length = 9 if version == "1.0" else 23
         if pca_result.shape[1] != expected_length:
             raise HTTPException(status_code=400, detail=f"PCA output should have {expected_length} features, but it has {pca_result.shape[1]}.")
-        
+
         print(f"PCA Result Shape: {pca_result.shape}")
 
         # Load model
@@ -281,7 +289,6 @@ async def predict(
             raise HTTPException(status_code=500, detail=f"Error during prediction: {str(e)}")
 
     return {"predictions": predictions}
-
 
 
 
