@@ -215,7 +215,7 @@ class PredictionData(BaseModel):
     features: Dict[str, float]  # Features are given as key-value pairs
 
 @app.post("/predict")
-async def predict(
+def predict(
     model_type: str, 
     version: str, 
     file: UploadFile = File(...)  # Accepts the file upload
@@ -224,7 +224,7 @@ async def predict(
     
     # Read the uploaded file content and parse it as JSON
     try:
-        file_content = await file.read()
+        file_content = file.read()  # Remove await to make it synchronous
         input_data = json.loads(file_content)  # Parse JSON content
     except Exception as e:
         raise HTTPException(status_code=400, detail=f"Error reading or parsing the JSON file: {str(e)}")
@@ -299,7 +299,6 @@ async def predict(
             raise HTTPException(status_code=500, detail=f"Error during prediction: {str(e)}")
 
     return {"predictions": predictions}
-
 
 
 
