@@ -203,29 +203,24 @@ def get_data_summary():
 
 
 
+# Define the structure for the prediction data
 class PredictionData(BaseModel):
     features: List[str]  # List of feature names
     values: List[float]  # List of corresponding feature values
-
-
 
 @app.post("/predict")
 def predict(
     model_type: str, 
     version: str, 
-    input_data: List[PredictionInput]  # List of inputs for each model type, version, and data
+    input_data: List[PredictionData]  # List of features and values for prediction
 ):
     """Handles model selection, input validation, and runs prediction."""
     
     predictions = []
 
-    for input_item in input_data:
-        model_type = input_item.model_type
-        version = input_item.version
-        data = input_item.data
-
-        # Step 1: Validate that the JSON contains 'features' and 'values'
-        if "features" not in data or "values" not in data:
+    for data in input_data:
+        # Validate that the JSON contains 'features' and 'values'
+        if not data.features or not data.values:
             raise HTTPException(status_code=400, detail="JSON must contain 'features' and 'values' keys.")
         
         features = data.features  # List of feature names
