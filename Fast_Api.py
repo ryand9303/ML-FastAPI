@@ -209,23 +209,31 @@ def get_data_summary():
 
 # Define the structure for the prediction data
 class PredictionData(BaseModel):
-    # Directly expecting a dictionary of feature-value pairs
-    features: Dict[str, float]  # Features are given as key-value pairs
+    features: Dict[str, float]  # Features are given as key-value pairs (no change needed)
 
 @app.post("/predict")
-def predict(
+async def predict(
     model_type: str, 
     version: str, 
-    input_data: List[PredictionData]  # List of features for prediction
+    file: UploadFile = File(...),  # Accepts the file upload
 ):
     """Handles model selection, input validation, and runs prediction."""
+    
+    # Read the uploaded file content and parse it as JSON
+    try:
+        file_content = await file.read()
+        input_data = json.loads(file_content)  # Parse JSON content
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Error reading or parsing the JSON file: {str(e)}")
     
     predictions = []
 
     for data in input_data:
-        # Directly access the features from the input JSON without needing a wrapper
-        if not data.features:
-            raise HTTPException(status_code=400, detail="JSON must contain 'features' with their corresponding values.")
+        # Wrap the data in the "features" section
+        features_data = {"features": data}  # Wrap the entire data under "features"
+
+        if not features_data["features"]:
+            raise HTTPException(status_code=400, detail="JSON must contain 'features' with corresponding values.")
 
         # Load pre-trained scaler and PCA
         try:
@@ -236,7 +244,7 @@ def predict(
             raise HTTPException(status_code=500, detail=f"Error loading scaler or PCA: {str(e)}")
 
         # Convert feature dictionary to list
-        features = list(data.features.values())
+        features = list(features_data["features"].values())
         feature_values = np.array(features).reshape(1, -1)  # Reshape if necessary
 
         try:
