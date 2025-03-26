@@ -224,7 +224,7 @@ def predict(
     
     # Read the uploaded file content and parse it as JSON
     try:
-        file_content = file.read()  # Remove await to make it synchronous
+        file_content = file.file.read()  # Read file content synchronously
         input_data = json.loads(file_content)  # Parse JSON content
     except Exception as e:
         raise HTTPException(status_code=400, detail=f"Error reading or parsing the JSON file: {str(e)}")
