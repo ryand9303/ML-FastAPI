@@ -203,33 +203,29 @@ def get_data_summary():
 
 
 
+
+
+
+
 # Define the structure for the prediction data
 class PredictionData(BaseModel):
+    # Directly expecting a dictionary of feature-value pairs
     features: Dict[str, float]  # Features are given as key-value pairs
 
 @app.post("/predict")
-async def predict(
+def predict(
     model_type: str, 
     version: str, 
-    file: UploadFile = File(...),  # User uploads the file
+    input_data: List[PredictionData]  # List of features for prediction
 ):
     """Handles model selection, input validation, and runs prediction."""
     
     predictions = []
-    
-    try:
-        # Step 1: Read the uploaded JSON file
-        content = await file.read()
-        data = json.loads(content)  # Convert file content to a Python dict
 
-        # Check if the data structure is correct
-        if not isinstance(data, dict):
-            raise HTTPException(status_code=400, detail="Input JSON should be a dictionary.")
-
-        # Step 2: Extract features from the JSON
-        features = data.get("features")
-        if not features:
-            raise HTTPException(status_code=400, detail="JSON must contain 'features' with corresponding values.")
+    for data in input_data:
+        # Directly access the features from the input JSON without needing a wrapper
+        if not data.features:
+            raise HTTPException(status_code=400, detail="JSON must contain 'features' with their corresponding values.")
 
         # Load pre-trained scaler and PCA
         try:
@@ -240,7 +236,8 @@ async def predict(
             raise HTTPException(status_code=500, detail=f"Error loading scaler or PCA: {str(e)}")
 
         # Convert feature dictionary to list
-        feature_values = np.array(list(features.values())).reshape(1, -1)  # Reshape if necessary
+        features = list(data.features.values())
+        feature_values = np.array(features).reshape(1, -1)  # Reshape if necessary
 
         try:
             print(f"Feature values: {feature_values}")
@@ -263,7 +260,7 @@ async def predict(
         except Exception as e:
             raise HTTPException(status_code=500, detail=f"Error loading model: {str(e)}")
 
-        # Step 3: Make prediction
+        # Make prediction
         try:
             prediction = model.predict(pca_result)
             predictions.append({
@@ -275,10 +272,17 @@ async def predict(
         except Exception as e:
             raise HTTPException(status_code=500, detail=f"Error during prediction: {str(e)}")
 
-    except Exception as e:
-        raise HTTPException(status_code=400, detail=f"Error: {str(e)}")
-
     return {"predictions": predictions}
+
+
+
+
+
+
+
+
+
+
     
 GITHUB_PLOTS_URL = "https://raw.githubusercontent.com/ryand9303/ML-FastAPI/main/Plots"
 
