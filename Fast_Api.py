@@ -203,32 +203,33 @@ def get_data_summary():
 
 
 
-import joblib
-import numpy as np
-from fastapi import FastAPI, HTTPException
-from pydantic import BaseModel
-from sklearn.decomposition import PCA
-from typing import List, Dict
-
-app = FastAPI()
-
 # Define the structure for the prediction data
 class PredictionData(BaseModel):
     features: Dict[str, float]  # Features are given as key-value pairs
 
 @app.post("/predict")
-def predict(
+async def predict(
     model_type: str, 
     version: str, 
-    input_data: List[PredictionData]  # List of features for prediction
+    file: UploadFile = File(...),  # User uploads the file
 ):
     """Handles model selection, input validation, and runs prediction."""
     
     predictions = []
+    
+    try:
+        # Step 1: Read the uploaded JSON file
+        content = await file.read()
+        data = json.loads(content)  # Convert file content to a Python dict
 
-    for data in input_data:
-        if not data.features:
-            raise HTTPException(status_code=400, detail="JSON must contain 'features' with their corresponding values.")
+        # Check if the data structure is correct
+        if not isinstance(data, dict):
+            raise HTTPException(status_code=400, detail="Input JSON should be a dictionary.")
+
+        # Step 2: Extract features from the JSON
+        features = data.get("features")
+        if not features:
+            raise HTTPException(status_code=400, detail="JSON must contain 'features' with corresponding values.")
 
         # Load pre-trained scaler and PCA
         try:
@@ -239,8 +240,7 @@ def predict(
             raise HTTPException(status_code=500, detail=f"Error loading scaler or PCA: {str(e)}")
 
         # Convert feature dictionary to list
-        features = list(data.features.values())
-        feature_values = np.array(features).reshape(1, -1)  # Reshape if necessary
+        feature_values = np.array(list(features.values())).reshape(1, -1)  # Reshape if necessary
 
         try:
             print(f"Feature values: {feature_values}")
@@ -253,7 +253,7 @@ def predict(
         expected_length = 9 if version == "1.0" else 23
         if pca_result.shape[1] != expected_length:
             raise HTTPException(status_code=400, detail=f"PCA output should have {expected_length} features, but it has {pca_result.shape[1]}.")
-
+        
         print(f"PCA Result Shape: {pca_result.shape}")
 
         # Load model
@@ -263,7 +263,7 @@ def predict(
         except Exception as e:
             raise HTTPException(status_code=500, detail=f"Error loading model: {str(e)}")
 
-        # Make prediction
+        # Step 3: Make prediction
         try:
             prediction = model.predict(pca_result)
             predictions.append({
@@ -274,6 +274,9 @@ def predict(
             })
         except Exception as e:
             raise HTTPException(status_code=500, detail=f"Error during prediction: {str(e)}")
+
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Error: {str(e)}")
 
     return {"predictions": predictions}
     
