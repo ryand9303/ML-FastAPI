@@ -203,6 +203,15 @@ def get_data_summary():
 
 
 
+import joblib
+import numpy as np
+from fastapi import FastAPI, HTTPException
+from pydantic import BaseModel
+from sklearn.decomposition import PCA
+from typing import List, Dict
+
+app = FastAPI()
+
 # Define the structure for the prediction data
 class PredictionData(BaseModel):
     features: Dict[str, float]  # Features are given as key-value pairs
@@ -211,27 +220,14 @@ class PredictionData(BaseModel):
 def predict(
     model_type: str, 
     version: str, 
-    file: UploadFile = File(...)  # Upload file instead of directly inputting JSON
+    input_data: List[PredictionData]  # List of features for prediction
 ):
     """Handles model selection, input validation, and runs prediction."""
-
+    
     predictions = []
 
-    try:
-        # Read the file content
-        file_contents = file.file.read()
-        input_data = json.loads(file_contents)  # Parse the JSON content
-    except Exception as e:
-        raise HTTPException(status_code=400, detail=f"Error reading file: {str(e)}")
-
-    # Check if the file has data
-    if not isinstance(input_data, list):  # Assuming the JSON file contains a list of records
-        raise HTTPException(status_code=400, detail="Input data must be a list of JSON records.")
-
-    # Iterate over the input data records
     for data in input_data:
-        # Ensure the features are present in the data
-        if "features" not in data or not data["features"]:
+        if not data.features:
             raise HTTPException(status_code=400, detail="JSON must contain 'features' with their corresponding values.")
 
         # Load pre-trained scaler and PCA
@@ -243,7 +239,7 @@ def predict(
             raise HTTPException(status_code=500, detail=f"Error loading scaler or PCA: {str(e)}")
 
         # Convert feature dictionary to list
-        features = list(data["features"].values())
+        features = list(data.features.values())
         feature_values = np.array(features).reshape(1, -1)  # Reshape if necessary
 
         try:
