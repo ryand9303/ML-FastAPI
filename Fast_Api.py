@@ -281,8 +281,12 @@ def predict(
 
     return {"predictions": predictions}
     
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"An error occurred: {str(e)}")
+try:
+    # your code that might raise an exception
+    model = joblib.load(model_file_path)
+except Exception as e:
+    # handle the exception here
+    raise HTTPException(status_code=500, detail=f"Error loading model: {str(e)}")
     
 GITHUB_PLOTS_URL = "https://raw.githubusercontent.com/ryand9303/ML-FastAPI/main/Plots"
 
