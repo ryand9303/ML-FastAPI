@@ -203,28 +203,23 @@ def get_data_summary():
 
 
 
-# Define the structure for the prediction data
 class PredictionData(BaseModel):
-    features: List[str]  # List of feature names
-    values: List[float]  # List of corresponding feature values
+    features: Dict[str, float]  # Features are given as key-value pairs
 
 @app.post("/predict")
 def predict(
     model_type: str, 
     version: str, 
-    input_data: List[PredictionData]  # List of features and values for prediction
+    input_data: List[PredictionData]  # List of features for prediction
 ):
     """Handles model selection, input validation, and runs prediction."""
     
     predictions = []
 
     for data in input_data:
-        # Validate that the JSON contains 'features' and 'values'
-        if not data.features or not data.values:
-            raise HTTPException(status_code=400, detail="JSON must contain 'features' and 'values' keys.")
-        
-        features = data.features  # List of feature names
-        values = data.values  # List of corresponding feature values
+        # Validate that the JSON contains features and their values
+        if not data.features:
+            raise HTTPException(status_code=400, detail="JSON must contain 'features' with their corresponding values.")
 
         # Step 2: Load pre-trained scaler and PCA
         try:
@@ -233,12 +228,11 @@ def predict(
         except Exception as e:
             raise HTTPException(status_code=500, detail=f"Error loading scaler or PCA: {str(e)}")
 
-        # Step 3: Check if the number of features matches the expected number for scaling and PCA
-        if len(features) != len(values):
-            raise HTTPException(status_code=400, detail="Features and values lists must have the same length.")
-
-        # Step 4: Prepare feature values for scaling and PCA
-        feature_values = np.array(values).reshape(1, -1)  # Reshape values to fit scaling and PCA
+        # Step 3: Convert the feature dictionary into a list of values (ensure the features are in the correct order)
+        features = list(data.features.values())
+        
+        # Prepare feature values for scaling and PCA
+        feature_values = np.array(features).reshape(1, -1)  # Reshape values to fit scaling and PCA
 
         try:
             # Apply the scaler to normalize/standardize the feature values
@@ -250,14 +244,14 @@ def predict(
         except Exception as e:
             raise HTTPException(status_code=400, detail=f"Error during scaling or PCA transformation: {str(e)}")
 
-        # Step 5: Load the corresponding model
+        # Step 4: Load the corresponding model
         model_file_path = f"Models/{model_type}/{version}/tuned_multi_output_model{version}.pkl"
         try:
             model = joblib.load(model_file_path)  # Load the pre-trained model
         except Exception as e:
             raise HTTPException(status_code=500, detail=f"Error loading model: {str(e)}")
 
-        # Step 6: Make predictions using PCA-transformed features
+        # Step 5: Make predictions using PCA-transformed features
         for column_idx in range(pca_result.shape[1]):
             pca_features = pca_result[:, column_idx].reshape(1, -1)
 
@@ -271,7 +265,7 @@ def predict(
                 "prediction": prediction.tolist()
             })
 
-    # Step 7: Return predictions as JSON
+    # Step 6: Return predictions as JSON
     return {"predictions": predictions}
 
 GITHUB_PLOTS_URL = "https://raw.githubusercontent.com/ryand9303/ML-FastAPI/main/Plots"
