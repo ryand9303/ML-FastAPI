@@ -205,7 +205,8 @@ def get_data_summary():
 
 class PredictionData(BaseModel):
     features: Dict[str, float]  # Features are given as key-value pairs
-
+    
+@app.post("/predict")
 def predict(model_type: str, version: str, file: UploadFile = File(...)):
     """Handles model selection, input validation, and runs prediction using a JSON file."""
 
