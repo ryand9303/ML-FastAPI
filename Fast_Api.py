@@ -352,18 +352,15 @@ def predict(
 
 
 
-# Folder where the plot files are stored
 plots_folder = "Plots"
 
 # Ensure the folder exists (for safety)
 if not os.path.exists(plots_folder):
     os.makedirs(plots_folder)
 
-app.mount("/static", StaticFiles(directory=plots_folder), name="static")
-
-@app.get("/getPlot/{plot_type}")
+@app.get("/getPlot/{plot_type}", response_class=HTMLResponse)
 def get_plot(plot_type: str):
-    """Serves the requested plot file based on the plot type (correlation, histograms, or violins)."""
+    """Serves the requested plot file based on the plot type (as an interactive HTML)."""
     
     # Map the plot_type to the corresponding filename
     plot_files = {
@@ -372,11 +369,11 @@ def get_plot(plot_type: str):
         "violins": "violins_full.html"
     }
 
-    # Check if the plot_type is valid
+    # Validate plot_type input
     if plot_type not in plot_files:
         raise HTTPException(status_code=400, detail="Invalid plot type. Choose from 'correlation', 'histograms', or 'violins'.")
 
-    # Get the corresponding file path
+    # Determine file path
     plot_file = plot_files[plot_type]
     plot_file_path = os.path.join(plots_folder, plot_file)
 
@@ -384,9 +381,13 @@ def get_plot(plot_type: str):
     if not os.path.exists(plot_file_path):
         raise HTTPException(status_code=404, detail=f"{plot_file} not found.")
 
-    # Return the link to the static file
-    plot_file_url = f"/static/{plot_file}"
-    return {"file_url": plot_file_url}
+    # Read and return the HTML file
+    try:
+        with open(plot_file_path, 'r', encoding='utf-8') as file:
+            html_content = file.read()
+        return HTMLResponse(content=html_content)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error reading {plot_file}: {str(e)}")
 
 
 
