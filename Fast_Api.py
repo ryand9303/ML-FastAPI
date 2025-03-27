@@ -17,6 +17,8 @@ import plotly.io as pio
 from sklearn.decomposition import PCA
 from sklearn.preprocessing import StandardScaler
 import base64
+from fastapi.responses import FileResponse
+
 
 
 
@@ -305,75 +307,42 @@ def predict(
 
 
 
+
+
+# Folder where the plot files are stored
+plots_folder = "Plots"
+
+# Ensure the folder exists (for safety)
+if not os.path.exists(plots_folder):
+    os.makedirs(plots_folder)
+
+@app.get("/getPlot/{plot_type}")
+def get_plot(plot_type: str):
+    """Serves the requested plot file based on the plot type (correlation, histograms, or violins)."""
     
-GITHUB_PLOTS_URL = "https://raw.githubusercontent.com/ryand9303/ML-FastAPI/main/Plots"
+    # Map the plot_type to the corresponding filename
+    plot_files = {
+        "correlation": "correlation_full.html",
+        "histograms": "histograms_full.html",
+        "violins": "violins_full.html"
+    }
 
-# Define dataset location (Change if needed)
-DATASET_PATH = "data.json"
+    # Check if the plot_type is valid
+    if plot_type not in plot_files:
+        raise HTTPException(status_code=400, detail="Invalid plot type. Choose from 'correlation', 'histograms', or 'violins'.")
 
-# Ensure local directory for plots exists
-PLOTS_DIR = "Plots"
-os.makedirs(PLOTS_DIR, exist_ok=True)
+    # Get the corresponding file path
+    plot_file = plot_files[plot_type]
+    plot_file_path = os.path.join(plots_folder, plot_file)
 
-@app.get("/getPlot/{plot_name}")
-def get_plot(plot_name: str):
-    """
-    Fetches the requested plot HTML file from the GitHub repository's 'Plots' folder.
-    """
+    # Check if the file exists
+    if not os.path.exists(plot_file_path):
+        raise HTTPException(status_code=404, detail=f"{plot_file} not found.")
 
-    # Construct the GitHub URL for the plot file
-    plot_url = f"{GITHUB_PLOTS_URL}/{plot_name}.html"
-
-    # Attempt to download the plot file
-    response = requests.get(plot_url)
-
-    if response.status_code == 200:
-        return {"message": "Plot retrieved successfully", "plot_url": plot_url}
-    else:
-        raise HTTPException(status_code=404, detail="Plot not found in GitHub repository")
+    # Return the file as a response
+    return FileResponse(plot_file_path, media_type="application/octet-stream", filename=plot_file)
 
 
-@app.get("/generatePlot")
-def generate_plot(plot_type: str, variables: List[str]):
-    """
-    Generates a plot dynamically based on user input.
-    
-    Parameters:
-    - plot_type: "histogram", "correlation_map", or "violin_plot"
-    - variables: List of feature names to plot
-    """
-
-    # Load dataset from JSON
-    try:
-        with open(DATASET_PATH, "r") as f:
-            data = pd.DataFrame(json.load(f)["values"])
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to load dataset: {str(e)}")
-
-    # Check if variables exist in the dataset
-    missing_vars = [var for var in variables if var not in data.columns]
-    if missing_vars:
-        raise HTTPException(status_code=400, detail=f"Missing variables in dataset: {missing_vars}")
-
-    # Create and save the requested plot
-    plot_path = f"{PLOTS_DIR}/{plot_type}_{'_'.join(variables)}.html"
-
-    if plot_type.lower() == "histogram":
-        fig = px.histogram(data, x=variables[0], title=f"Histogram of {variables[0]}")
-    elif plot_type.lower() == "correlation_map":
-        corr_matrix = data[variables].corr()
-        fig = px.imshow(corr_matrix, title="Correlation Map", labels=dict(color="Correlation"))
-    elif plot_type.lower() == "violin_plot":
-        if len(variables) < 2:
-            raise HTTPException(status_code=400, detail="Violin plot requires at least two variables (x and y).")
-        fig = px.violin(data, x=variables[0], y=variables[1], box=True, title=f"Violin Plot: {variables[1]} vs {variables[0]}")
-    else:
-        raise HTTPException(status_code=400, detail="Invalid plot type. Choose from 'histogram', 'correlation_map', or 'violin_plot'.")
-
-    # Save the plot as an HTML file
-    pio.write_html(fig, plot_path)
-
-    return {"message": "Plot generated successfully", "plot_url": f"/{plot_path}"}
 
     
 if __name__ == "__main__":
