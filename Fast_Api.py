@@ -381,10 +381,12 @@ def get_plot(plot_type: str):
     if not os.path.exists(plot_file_path):
         raise HTTPException(status_code=404, detail=f"{plot_file} not found.")
 
-    # Return the HTML file as a response
-    with open(plot_file_path, "r") as file:
-        content = file.read()
-    return HTMLResponse(content=content)
+    # Read the HTML file
+    with open(plot_file_path, "r") as f:
+        html_content = f.read()
+
+    # Return the content as an HTML response (it will be rendered in the browser)
+    return HTMLResponse(content=html_content)
 
 
 @app.get("/getModelPlots/{model_type}/{version}")
