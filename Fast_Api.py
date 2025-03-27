@@ -21,7 +21,8 @@ from fastapi.responses import FileResponse
 from fastapi.responses import JSONResponse
 import os
 import zipfile  # Make sure to import this
-
+from fastapi.responses import HTMLResponse
+from fastapi.responses import StreamingResponse
 
 
 
@@ -380,8 +381,10 @@ def get_plot(plot_type: str):
     if not os.path.exists(plot_file_path):
         raise HTTPException(status_code=404, detail=f"{plot_file} not found.")
 
-    # Return the file as a response
-    return FileResponse(plot_file_path, media_type="application/octet-stream", filename=plot_file)
+    # Return the HTML file as a response
+    with open(plot_file_path, "r") as file:
+        content = file.read()
+    return HTMLResponse(content=content)
 
 
 @app.get("/getModelPlots/{model_type}/{version}")
@@ -435,8 +438,8 @@ def get_model_plots(model_type: str, version: str):
         for file_path in downloaded_files:
             zipf.write(file_path, os.path.basename(file_path))  # Write the file to the zip archive
 
-    # Return the ZIP file as a response
-    return FileResponse(zip_file_path, media_type="application/zip", filename=zip_filename)
+    # Return the ZIP file directly as a response (streaming the file)
+    return StreamingResponse(open(zip_file_path, "rb"), media_type="application/zip", headers={"Content-Disposition": f"attachment; filename={zip_filename}"})
 
 
 
