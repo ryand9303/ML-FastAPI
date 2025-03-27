@@ -410,30 +410,30 @@ def get_model_plots(model_type: str, version: str):
         f"{version_prefix}_{model_prefix}_rotor2_actual_vs_pred.html",
     ]
 
-    # Base GitHub URL (ensure this matches your GitHub repository structure)
-    base_url = f"{GITHUB_REPO_URL}/{model_prefix}/{version_prefix}"
-
-    # Attempt to download each file
+    # Fetch the files from GitHub
     downloaded_files = []
     for file in files:
-        file_url = f"{base_url}/{file}"
         content = download_file_from_github(model_type, version, file)
         
         if content:
-            # Save the file locally and return as response
+            # Save the file locally and add it to the downloaded files list
             file_path = os.path.join(plots_folder, file)
             with open(file_path, 'wb') as f:
                 f.write(content)
-            
             downloaded_files.append(file_path)
         else:
-            # If any file cannot be found, return a 404 error
             raise HTTPException(status_code=404, detail=f"Unable to find {file} for {model_type} version {version}.")
 
-    # Return the downloaded file as a response
-    # For simplicity, we'll return the first downloaded file, but you can modify this to return all
-    return FileResponse(media_type="application/octet-stream", downloaded_files[0], filename=files[0], downloaded_files[1], filename=files[1], downloaded_files[2], filename=files[2])
+    # Create a ZIP file containing the downloaded plot files
+    zip_filename = f"{model_prefix}_{version_prefix}_plots.zip"
+    zip_file_path = os.path.join(plots_folder, zip_filename)
 
+    with zipfile.ZipFile(zip_file_path, 'w') as zipf:
+        for file_path in downloaded_files:
+            zipf.write(file_path, os.path.basename(file_path))  # Write the file to the zip archive
+
+    # Return the ZIP file as a response
+    return FileResponse(zip_file_path, media_type="application/zip", filename=zip_filename)
 
 
 
