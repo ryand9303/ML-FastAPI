@@ -1,5 +1,5 @@
 {
-    "Gradient Boosting 99%": {
+    "Gradient Boosting 1.0": {
         "training_score": 0.9873849134405943,
         "testing_score": 0.9866918803637135,
         "mae": [
