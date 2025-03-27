@@ -380,6 +380,57 @@ def get_plot(plot_type: str):
     return FileResponse(plot_file_path, media_type="application/octet-stream", filename=plot_file)
 
 
+@app.get("/getModelPlots/{model_type}/{version}")
+def get_model_plots(model_type: str, version: str):
+    """
+    This endpoint returns the plot HTML files for a given model type and version.
+    model_type: "Random Forest" or "Gradient Boosting"
+    version: "1.0" or "2.0"
+    """
+    # Validate model type and version
+    valid_model_types = ["Random Forest", "Gradient Boosting"]
+    valid_versions = ["1.0", "2.0"]
+    
+    if model_type not in valid_model_types:
+        raise HTTPException(status_code=400, detail="Invalid model type. Use 'Random Forest' or 'Gradient Boosting'.")
+    if version not in valid_versions:
+        raise HTTPException(status_code=400, detail="Invalid version. Use '1.0' or '2.0'.")
+
+    # Define the model prefix (RF for Random Forest, GB for Gradient Boosting)
+    model_prefix = "RF" if model_type == "Random Forest" else "GB"
+
+    # Define the version prefix (95 for 1.0, 99 for 2.0)
+    version_prefix = "95" if version == "1.0" else "99"
+
+    # Construct the filenames based on model and version
+    files = [
+        f"{version_prefix}_{model_prefix}_mods1_actual_vs_pred.html",
+        f"{version_prefix}_{model_prefix}_rotor1_actual_vs_pred.html",
+        f"{version_prefix}_{model_prefix}_rotor2_actual_vs_pred.html",
+    ]
+
+    # Base GitHub URL (ensure this matches your GitHub repository structure)
+    base_url = f"{GITHUB_REPO_URL}/{model_prefix}/{version_prefix}"
+
+    # Fetch the files from GitHub
+    downloaded_files = []
+    for file in files:
+        file_url = f"{base_url}/{file}"
+        content = download_file_from_github(model_type, version, file)
+        
+        if content:
+            downloaded_files.append({
+                "file_name": file,
+                "content": content
+            })
+        else:
+            # If any file cannot be found, return a 404 error
+            raise HTTPException(status_code=404, detail=f"Unable to find {file} for {model_type} version {version}.")
+
+    # Return the downloaded file contents in the response
+    return {"files": downloaded_files}
+
+
 
 
 
