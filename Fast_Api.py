@@ -210,7 +210,7 @@ def get_data_summary():
 
 
 
-# Define the structure for the prediction data
+# Define the structure for the prediction data 
 class PredictionData(BaseModel):
     features: Dict[str, float]  # Features are given as key-value pairs
 
@@ -218,76 +218,85 @@ class PredictionData(BaseModel):
 def predict(
     model_type: str, 
     version: str, 
-    input_data: PredictionData  # Accepts the input data directly as JSON
+    file: UploadFile = File(...)  # Accepts the file upload
 ):
     """Handles model selection, input validation, and runs prediction."""
-
+    
+    # Read the uploaded file content and parse it as JSON
+    try:
+        file_content = file.file.read()  # Read file content synchronously
+        input_data = json.loads(file_content)  # Parse JSON content
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Error reading or parsing the JSON file: {str(e)}")
+    
     predictions = []
 
-    # Convert incoming JSON data inside "features" to match the structure
-    data = {"features": input_data.features}
-
-    if "features" not in data:
-        raise HTTPException(status_code=400, detail="JSON must contain 'features' with corresponding values.")
-
-    # Ensure features are not empty
-    if not data["features"]:
-        raise HTTPException(status_code=400, detail="JSON must contain 'features' with corresponding values.")
-
-    # Load pre-trained scaler
-    try:
-        print("Loading scaler...")
-        scaler = joblib.load("scaler.pkl")
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error loading scaler: {str(e)}")
+    # Wrap the incoming JSON data inside "features" to match the structure
+    if isinstance(input_data, dict):  # Single data point
+        input_data = [{"features": input_data}]
     
-    # Load the correct PCA version based on the 'version' parameter
-    try:
-        if version == "1.0":
-            pca = joblib.load("pca_1.0.pkl")
-        elif version == "2.0":
-            pca = joblib.load("pca_2.0.pkl")
-        else:
-            raise HTTPException(status_code=400, detail="Invalid version specified. Only '1.0' and '2.0' are supported.")
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error loading PCA: {str(e)}")
+    for data in input_data:
+        if "features" not in data:
+            raise HTTPException(status_code=400, detail="JSON must contain 'features' with corresponding values.")
 
-    # Convert feature dictionary to list
-    features = list(data["features"].values())
-    feature_values = np.array(features).reshape(1, -1)  # Reshape if necessary
+        # Ensure features are not empty
+        if not data["features"]:
+            raise HTTPException(status_code=400, detail="JSON must contain 'features' with corresponding values.")
 
-    try:
-        print(f"Feature values: {feature_values}")
-        scaled_values = scaler.transform(feature_values)
-        pca_result = pca.transform(scaled_values)
-    except Exception as e:
-        raise HTTPException(status_code=400, detail=f"Error during scaling or PCA transformation: {str(e)}")
+        # Load pre-trained scaler
+        try:
+            print("Loading scaler...")
+            scaler = joblib.load("scaler.pkl")
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"Error loading scaler: {str(e)}")
+        
+        # Load the correct PCA version based on the 'version' parameter
+        try:
+            if version == "1.0":
+                pca = joblib.load("pca_1.0.pkl")
+            elif version == "2.0":
+                pca = joblib.load("pca_2.0.pkl")
+            else:
+                raise HTTPException(status_code=400, detail="Invalid version specified. Only '1.0' and '2.0' are supported.")
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"Error loading PCA: {str(e)}")
 
-    # Ensure correct PCA output size (9 features for version 1.0, 23 for version 2.0)
-    expected_length = 9 if version == "1.0" else 23
-    if pca_result.shape[1] != expected_length:
-        raise HTTPException(status_code=400, detail=f"PCA output should have {expected_length} features, but it has {pca_result.shape[1]}.")
+        # Convert feature dictionary to list
+        features = list(data["features"].values())
+        feature_values = np.array(features).reshape(1, -1)  # Reshape if necessary
 
-    print(f"PCA Result Shape: {pca_result.shape}")
+        try:
+            print(f"Feature values: {feature_values}")
+            scaled_values = scaler.transform(feature_values)
+            pca_result = pca.transform(scaled_values)
+        except Exception as e:
+            raise HTTPException(status_code=400, detail=f"Error during scaling or PCA transformation: {str(e)}")
 
-    # Load model
-    model_file_path = f"Models/{model_type}/{version}/tuned_multi_output_model{version}.pkl"
-    try:
-        model = joblib.load(model_file_path)
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error loading model: {str(e)}")
+        # Ensure correct PCA output size (9 features for version 1.0, 23 for version 2.0)
+        expected_length = 9 if version == "1.0" else 23
+        if pca_result.shape[1] != expected_length:
+            raise HTTPException(status_code=400, detail=f"PCA output should have {expected_length} features, but it has {pca_result.shape[1]}.")
 
-    # Make prediction
-    try:
-        prediction = model.predict(pca_result)
-        predictions.append({
-            "model_type": model_type,
-            "version": version,
-            "input_features": pca_result.tolist(),
-            "prediction": prediction.tolist()
-        })
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error during prediction: {str(e)}")
+        print(f"PCA Result Shape: {pca_result.shape}")
+
+        # Load model
+        model_file_path = f"Models/{model_type}/{version}/tuned_multi_output_model{version}.pkl"
+        try:
+            model = joblib.load(model_file_path)
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"Error loading model: {str(e)}")
+
+        # Make prediction
+        try:
+            prediction = model.predict(pca_result)
+            predictions.append({
+                "model_type": model_type,
+                "version": version,
+                "input_features": pca_result.tolist(),
+                "prediction": prediction.tolist()
+            })
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"Error during prediction: {str(e)}")
 
     return {"predictions": predictions}
 
