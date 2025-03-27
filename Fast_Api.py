@@ -23,6 +23,7 @@ import os
 import zipfile  # Make sure to import this
 from fastapi.responses import HTMLResponse
 from fastapi.responses import StreamingResponse
+from fastapi.staticfiles import StaticFiles
 
 
 
@@ -358,6 +359,8 @@ plots_folder = "Plots"
 if not os.path.exists(plots_folder):
     os.makedirs(plots_folder)
 
+app.mount("/static", StaticFiles(directory=plots_folder), name="static")
+
 @app.get("/getPlot/{plot_type}")
 def get_plot(plot_type: str):
     """Serves the requested plot file based on the plot type (correlation, histograms, or violins)."""
@@ -381,12 +384,13 @@ def get_plot(plot_type: str):
     if not os.path.exists(plot_file_path):
         raise HTTPException(status_code=404, detail=f"{plot_file} not found.")
 
-    # Read the HTML file
-    with open(plot_file_path, "r") as f:
-        html_content = f.read()
+    # Return the link to the static file
+    plot_file_url = f"/static/{plot_file}"
+    return {"file_url": plot_file_url}
 
-    # Return the content as an HTML response (it will be rendered in the browser)
-    return HTMLResponse(content=html_content)
+
+
+
 
 
 @app.get("/getModelPlots/{model_type}/{version}")
