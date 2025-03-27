@@ -432,7 +432,7 @@ def get_model_plots(model_type: str, version: str):
 
     # Return the downloaded file as a response
     # For simplicity, we'll return the first downloaded file, but you can modify this to return all
-    return FileResponse(downloaded_files[0], media_type="application/octet-stream", filename=files[0])
+    return FileResponse(media_type="application/octet-stream", downloaded_files[0], filename=files[0], downloaded_files[1], filename=files[1], downloaded_files[2], filename=files[2])
 
 
 
