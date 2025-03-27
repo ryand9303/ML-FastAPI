@@ -413,7 +413,7 @@ def get_model_plots(model_type: str, version: str):
     # Base GitHub URL (ensure this matches your GitHub repository structure)
     base_url = f"{GITHUB_REPO_URL}/{model_prefix}/{version_prefix}"
 
-    # Fetch the files from GitHub
+    # Attempt to download each file
     downloaded_files = []
     for file in files:
         file_url = f"{base_url}/{file}"
