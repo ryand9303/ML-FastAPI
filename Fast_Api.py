@@ -380,6 +380,50 @@ def get_plot(plot_type: str):
     return FileResponse(plot_file_path, media_type="application/octet-stream", filename=plot_file)
 
 
+@app.get("/getModelPlots")
+def get_model_plots(model_type: str, version: str):
+    """
+    This endpoint returns the plot HTML files for a given model type and version.
+    model_type: "Random Forest" or "Gradient Boosting"
+    version: "1.0" or "2.0"
+    """
+    # Validate model type and version
+    valid_model_types = ["Random Forest", "Gradient Boosting"]
+    valid_versions = ["1.0", "2.0"]
+    
+    if model_type not in valid_model_types:
+        raise HTTPException(status_code=400, detail="Invalid model type. Use 'Random Forest' or 'Gradient Boosting'.")
+    if version not in valid_versions:
+        raise HTTPException(status_code=400, detail="Invalid version. Use '1.0' or '2.0'.")
+
+    # Build file names based on model type and version
+    files = [
+        f"{version.replace('.', '')}_{model_type.split()[0].upper()}_mods1_actual_vs_pred.html",
+        f"{version.replace('.', '')}_{model_type.split()[0].upper()}_rotor1_actual_vs_pred.html",
+        f"{version.replace('.', '')}_{model_type.split()[0].upper()}_rotor2_actual_vs_pred.html",
+    ]
+
+    # Fetch the files from GitHub
+    file_urls = [f"{GITHUB_REPO_URL}/{file}" for file in files]
+
+    # Attempt to download each file
+    downloaded_files = []
+    for url in file_urls:
+        file_name = url.split("/")[-1]
+        content = download_file_from_github(model_type, version, file_name)
+        if content:
+            downloaded_files.append({
+                "file_name": file_name,
+                "content": content
+            })
+    
+    if len(downloaded_files) == 0:
+        raise HTTPException(status_code=404, detail="Unable to find any plot files for the given model and version.")
+    
+    # Return the file contents (can be downloaded or opened)
+    return {"files": downloaded_files}
+
+
 
     
 if __name__ == "__main__":
