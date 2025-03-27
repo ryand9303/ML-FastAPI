@@ -420,17 +420,19 @@ def get_model_plots(model_type: str, version: str):
         content = download_file_from_github(model_type, version, file)
         
         if content:
-            downloaded_files.append({
-                "file_name": file,
-                "content": content
-            })
+            # Save the file locally and return as response
+            file_path = os.path.join(plots_folder, file)
+            with open(file_path, 'wb') as f:
+                f.write(content)
+            
+            downloaded_files.append(file_path)
         else:
             # If any file cannot be found, return a 404 error
             raise HTTPException(status_code=404, detail=f"Unable to find {file} for {model_type} version {version}.")
 
-    # Return the downloaded file contents in the response
-    return {"files": downloaded_files}
-
+    # Return the downloaded file as a response
+    # For simplicity, we'll return the first downloaded file, but you can modify this to return all
+    return FileResponse(downloaded_files[0], media_type="application/octet-stream", filename=files[0])
 
 
 
