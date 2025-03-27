@@ -174,32 +174,69 @@ def get_model_performance_metrics(model_type: str, version: str):
     
     return models[model_key]["performance_metrics"]
 
+
+
+# Hardcoded dataset summary (obtained from Google Colab)
+num_rows = 751406  # found in google colab code
+num_cols = 212  # found in google colab code
+columns = ['Sim_Num', 'Case_Num', 'PM1_P', 'PM2_P', 'Mods1_Q', 'T1', 'T2', 'T3', 'T4', 'T4b', 'Mods1_Bridge_Position', 'T5', 'T6', 'T7', 'R8', 'PM1_Alpha', 'PM2_Alpha', 
+           'Mods1_Inner_Alpha', 'k_Mods1_Alpha', 'PM1_Radial_Portion', 'PM2_Radial_Portion', 'PM1_EM_Theta0', 'PM2_EM_Theta0', 'pm1rMatIndx', 'pm1tMatIndx', 'pm2rMatIndx', 
+           'pm2tMatIndx', 'Temperature', 'pm1rBknee', 'pm1tBknee', 'pm2rBknee', 'pm2tBknee', 'Gen_Num', 'Ind_Num', 'symmetryFactor', 'Rotor1_Torque.Torque', 
+           'Rotor1_Force.Force_mag', 'Rotor2_Torque.Torque', 'Rotor2_Force.Force_mag', 'Mods1_Torque.Torque', 'Mods1_Force.Force_mag', 'PM1_Torque.Torque', 
+           'PM1_Force.Force_mag', 'PM2_Torque.Torque', 'PM2_Force.Force_mag', 'Rotor1_Demag_Percentage', 'Rotor2_Demag_Percentage', 'PM1_Outs_Demag_Percentage', 
+           'PM2_Outs_Demag_Percentage', 'PM1_Ins_Demag_Percentage', 'PM2_Ins_Demag_Percentage', 'PM1_Radial_Demag_Percentage', 'PM2_Radial_Demag_Percentage', 
+           'AG1 Middle Circle max Mag_B', 'AG1 Middle Circle rms Mag_B', 'AG1 Middle Circle max Br', 'AG1 Middle Circle rms Br', 'AG2 Middle Circle max Mag_B', 
+           'AG2 Middle Circle rms Mag_B', 'AG2 Middle Circle max Br', 'AG2 Middle Circle rms Br', 'BI1 Middle Circle max Mag_B', 'BI1 Middle Circle rms Mag_B', 
+           'BI1 Middle Circle max Br', 'BI1 Middle Circle rms Br', 'BI2 Middle Circle max Mag_B', 'BI2 Middle Circle rms Mag_B', 'BI2 Middle Circle max Br', 
+           'BI2 Middle Circle rms Br', 'Bore 1mm Circle max Mag_B', 'Bore 1mm Circle rms Mag_B', 'Bore 1mm Circle max Br', 'Bore 1mm Circle rms Br', 
+           'Bore 2mm Circle max Mag_B', 'Bore 2mm Circle rms Mag_B', 'Bore 2mm Circle max Br', 'Bore 2mm Circle rms Br', 'Bore 3mm Circle max Mag_B', 
+           'Bore 3mm Circle rms Mag_B', 'Bore 3mm Circle max Br', 'Bore 3mm Circle rms Br', 'Bore 5mm Circle max Mag_B', 'Bore 5mm Circle rms Mag_B', 'Bore 5mm Circle max Br', 
+           'Bore 5mm Circle rms Br', 'Bore 7mm Circle max Mag_B', 'Bore 7mm Circle rms Mag_B', 'Bore 7mm Circle max Br', 'Bore 7mm Circle rms Br', 'Bore 10mm Circle max Mag_B', 
+           'Bore 10mm Circle rms Mag_B', 'Bore 10mm Circle max Br', 'Bore 10mm Circle rms Br', 'Bore 15mm Circle max Mag_B', 'Bore 15mm Circle rms Mag_B', 
+           'Bore 15mm Circle max Br', 'Bore 15mm Circle rms Br', 'Bore 20mm Circle max Mag_B', 'Bore 20mm Circle rms Mag_B', 'Bore 20mm Circle max Br', 
+           'Bore 20mm Circle rms Br', 'Bore 25mm Circle max Mag_B', 'Bore 25mm Circle rms Mag_B', 'Bore 25mm Circle max Br', 'Bore 25mm Circle rms Br', 
+           'Bore 30mm Circle max Mag_B', 'Bore 30mm Circle rms Mag_B', 'Bore 30mm Circle max Br', 'Bore 30mm Circle rms Br', 'Exterior 1mm Circle max Mag_B', 
+           'Exterior 1mm Circle rms Mag_B', 'Exterior 1mm Circle max Br', 'Exterior 1mm Circle rms Br', 'Exterior 2mm Circle max Mag_B', 'Exterior 2mm Circle rms Mag_B', 
+           'Exterior 2mm Circle max Br', 'Exterior 2mm Circle rms Br', 'Exterior 3mm Circle max Mag_B', 'Exterior 3mm Circle rms Mag_B', 'Exterior 3mm Circle max Br', 
+           'Exterior 3mm Circle rms Br', 'Exterior 10mm Circle max Mag_B', 'Exterior 10mm Circle rms Mag_B', 'Exterior 10mm Circle max Br', 'Exterior 10mm Circle rms Br', 
+           'Exterior 15mm Circle max Mag_B', 'Exterior 15mm Circle rms Mag_B', 'Exterior 15mm Circle max Br', 'Exterior 15mm Circle rms Br', 'Exterior 20mm Circle max Mag_B', 
+           'Exterior 20mm Circle rms Mag_B', 'Exterior 20mm Circle max Br', 'Exterior 20mm Circle rms Br', 'Exterior 25mm Circle max Mag_B', 'Exterior 25mm Circle rms Mag_B', 
+           'Exterior 25mm Circle max Br', 'Exterior 25mm Circle rms Br', 'Exterior 5mm Circle max Mag_B', 'Exterior 5mm Circle rms Mag_B', 'Exterior 5mm Circle max Br', 
+           'Exterior 5mm Circle rms Br', 'Exterior 7mm Circle max Mag_B', 'Exterior 7mm Circle rms Mag_B', 'Exterior 7mm Circle max Br', 'Exterior 7mm Circle rms Br', 
+           'Exterior 30mm Circle max Mag_B', 'Exterior 30mm Circle rms Mag_B', 'Exterior 30mm Circle max Br', 'Exterior 30mm Circle rms Br', 'Exterior 35mm Circle max Mag_B', 
+           'Exterior 35mm Circle rms Mag_B', 'Exterior 35mm Circle max Br', 'Exterior 35mm Circle rms Br', 'Exterior 40mm Circle max Mag_B', 'Exterior 40mm Circle rms Mag_B', 
+           'Exterior 40mm Circle max Br', 'Exterior 40mm Circle rms Br', 'Exterior 45mm Circle max Mag_B', 'Exterior 45mm Circle rms Mag_B', 'Exterior 45mm Circle max Br', 
+           'Exterior 45mm Circle rms Br', 'Exterior 50mm Circle max Mag_B', 'Exterior 50mm Circle rms Mag_B', 'Exterior 50mm Circle max Br', 'Exterior 50mm Circle rms Br', 
+           'Mods1 Middle Circle max Mag_B', 'Mods1 Middle Circle rms Mag_B', 'Mods1 Middle Circle max Br', 'Mods1 Middle Circle rms Br', 'PM1 Middle Circle max Mag_B', 
+           'PM1 Middle Circle rms Mag_B', 'PM1 Middle Circle max Br', 'PM1 Middle Circle rms Br', 'PM2 Middle Circle max Mag_B', 'PM2 Middle Circle rms Mag_B', 
+           'PM2 Middle Circle max Br', 'PM2 Middle Circle rms Br', 'R1 Circle max Mag_B', 'R1 Circle rms Mag_B', 'R1 Circle max Br', 'R1 Circle rms Br', 'R2 Circle max Mag_B', 
+           'R2 Circle rms Mag_B', 'R2 Circle max Br', 'R2 Circle rms Br', 'R3 Circle max Mag_B', 'R3 Circle rms Mag_B', 'R3 Circle max Br', 'R3 Circle rms Br', 
+           'R4 Circle max Mag_B', 'R4 Circle rms Mag_B', 'R4 Circle max Br', 'R4 Circle rms Br', 'R5 Circle max Mag_B', 'R5 Circle rms Mag_B', 'R5 Circle max Br', 
+           'R5 Circle rms Br', 'R6 Circle max Mag_B', 'R6 Circle rms Mag_B', 'R6 Circle max Br', 'R6 Circle rms Br', 'R7 Circle max Mag_B', 'R7 Circle rms Mag_B', 
+           'R7 Circle max Br', 'R7 Circle rms Br', 'R8 Circle max Mag_B', 'R8 Circle rms Mag_B', 'R8 Circle max Br', 'R8 Circle rms Br', 'Sim_Time', 'Memory_Utilized', 
+           'Cluster_Used']
+
+# Hardcoded target variables
+targets = ['Rotor1_Torque.Torque', 'Rotor2_Torque.Torque', 'Mods1_Torque.Torque']
+
+# Endpoint to get data summary (hardcoded)
 @app.get("/getDataSummary")
 def get_data_summary():
-    """Returns a summary of all features and their type (feature or target) for each model."""
-    
-    # Fixed target names
-    targets = ['Rotor1_Torque.Torque', 'Rotor2_Torque.Torque', 'Mods1_Torque.Torque']
-
-    summary = {}
-
-    for model in MODELS:
-        model_type = model["model_type"]
-        model_version = model["version"]
-        model_key = f"{model_type} {model_version}"
-
-        # Get model features using the existing function
-        if model_key in models:
-            features = models[model_key]["features"]
-        else:
-            features = []
-
-        summary[model_key] = {
-            "features": features,  # Feature list from the model
-            "targets": targets  # Fixed list of target values
+    try:
+        # Prepare the response data
+        summary = {
+            "num_rows": num_rows,
+            "num_columns": num_cols,
+            "columns": columns,
+            "targets": targets  # Add target variables to the summary
         }
 
-    return summary
+        return JSONResponse(content=summary)
+
+    except Exception as e:
+        return JSONResponse(content={"error": str(e)}, status_code=500)
+
+
 
 
 
