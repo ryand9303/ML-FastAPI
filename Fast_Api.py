@@ -18,6 +18,7 @@ from sklearn.decomposition import PCA
 from sklearn.preprocessing import StandardScaler
 import base64
 from fastapi.responses import FileResponse
+from fastapi.responses import JSONResponse
 
 
 
