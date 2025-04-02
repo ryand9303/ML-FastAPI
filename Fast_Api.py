@@ -245,7 +245,7 @@ def get_data_summary():
             "num_columns": num_cols,
             "columns": columns,
             "targets": targets,  # Add target variables to the summary
-            "important_features": important features
+            "important_features": important_features
         }
 
         return JSONResponse(content=summary)
