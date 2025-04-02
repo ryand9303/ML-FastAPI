@@ -29,6 +29,7 @@ from fastapi.staticfiles import StaticFiles
 
 
 
+
 # FastAPI Setup
 app = FastAPI()
 
@@ -359,31 +360,32 @@ plots_folder = "Plots"
 if not os.path.exists(plots_folder):
     os.makedirs(plots_folder)
 
+app = FastAPI()
+
 app.mount("/static", StaticFiles(directory=plots_folder), name="static")
 
 @app.get("/getPlot/{plot_type}", response_class=HTMLResponse)
-def get_plot(plot_type: str):
-    """Serves the requested plot file based on the plot type (as an interactive HTML)."""
+def get_plot(plot_type: str, feature: str = Query(..., title="Feature", description="Enter the feature name (e.g., PM1_P)")):
+    """Serves the requested plot file based on the plot type and feature name (as an interactive HTML)."""
     
-    # Map the plot_type to the corresponding filename
-    plot_files = {
-        "correlation": "correlation_full.html",
-        "histograms": "histograms_full.html",
-        "violins": "violins_full.html"
-    }
-
     # Check if the plot_type is valid
-    if plot_type not in plot_files:
-        raise HTTPException(status_code=400, detail="Invalid plot type. Choose from 'correlation', 'histograms', or 'violins'.")
+    valid_plot_types = ["histograms", "violins"]
+    if plot_type not in valid_plot_types:
+        raise HTTPException(status_code=400, detail="Invalid plot type. Choose from 'histograms' or 'violins'.")
 
-    # Get the corresponding file path
-    plot_file_path = os.path.join(plots_folder, plot_files[plot_type])
+    # Build the filename based on the plot_type and feature
+    if plot_type == "histograms":
+        plot_file = f"{feature}_histogram.html"
+    elif plot_type == "violins":
+        plot_file = f"{feature}_violin.html"
+    
+    plot_file_path = os.path.join(plots_folder, plot_file)
 
     # Check if the file exists
     if not os.path.exists(plot_file_path):
-        raise HTTPException(status_code=404, detail=f"{plot_files[plot_type]} not found.")
+        raise HTTPException(status_code=404, detail=f"{plot_file} not found for feature {feature}.")
 
-    # Read and return the HTML file
+    # Read and return the HTML file content
     with open(plot_file_path, 'r', encoding='utf-8') as file:
         html_content = file.read()
 
