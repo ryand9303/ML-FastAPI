@@ -227,7 +227,7 @@ columns = ['Sim_Num', 'Case_Num', 'PM1_P', 'PM2_P', 'Mods1_Q', 'T1', 'T2', 'T3',
 # Hardcoded target variables
 targets = ['Rotor1_Torque.Torque', 'Rotor2_Torque.Torque', 'Mods1_Torque.Torque']
 
-important features = ['PM1_P', 'PM2_P', 'Mods1_Q', 'T1', 'T2', 'T3', 'T4', 'T4b', 'Mods1_Bridge_Position', 'T5', 'T6', 'T7', 'R8', 'PM1_Alpha', 'PM2_Alpha', 
+important_features = ['PM1_P', 'PM2_P', 'Mods1_Q', 'T1', 'T2', 'T3', 'T4', 'T4b', 'Mods1_Bridge_Position', 'T5', 'T6', 'T7', 'R8', 'PM1_Alpha', 'PM2_Alpha', 
            'Mods1_Inner_Alpha', 'k_Mods1_Alpha', 'PM1_Radial_Portion', 'PM2_Radial_Portion', 'PM1_EM_Theta0', 'PM2_EM_Theta0', 'pm1rMatIndx', 'pm1tMatIndx', 'pm2rMatIndx', 
            'pm2tMatIndx', 'Temperature', 'pm1rBknee', 'pm1tBknee', 'pm2rBknee', 'pm2tBknee', 'Rotor1_Torque.Torque', 
            'Rotor1_Force.Force_mag', 'Rotor2_Torque.Torque', 'Rotor2_Force.Force_mag', 'Mods1_Torque.Torque', 'Mods1_Force.Force_mag', 'PM1_Torque.Torque', 
@@ -245,7 +245,7 @@ def get_data_summary():
             "num_columns": num_cols,
             "columns": columns,
             "targets": targets,  # Add target variables to the summary
-            "important features": important features
+            "important_features": important features
         }
 
         return JSONResponse(content=summary)
