@@ -360,7 +360,6 @@ plots_folder = "Plots"
 if not os.path.exists(plots_folder):
     os.makedirs(plots_folder)
 
-app = FastAPI()
 
 app.mount("/static", StaticFiles(directory=plots_folder), name="static")
 
