@@ -30,6 +30,7 @@ from fastapi.staticfiles import StaticFiles
 
 
 
+
 # FastAPI Setup
 app = FastAPI()
 
@@ -359,12 +360,10 @@ plots_folder = "Plots"
 if not os.path.exists(plots_folder):
     os.makedirs(plots_folder)
 
-app.mount("/static", StaticFiles(directory=plots_folder), name="static")
-
-@app.get("/getPlot/{plot_type}", response_class=HTMLResponse)
+@app.get("/getPlot/{plot_type}")
 def get_plot(plot_type: str, feature: str = Query(..., title="Feature", description="Enter the feature name (e.g., PM1_P)")):
-    """Serves the requested plot file based on the plot type and feature name (as an interactive HTML)."""
-    
+    """Serves the URL of the requested plot file based on the plot type and feature name."""
+
     # Check if the plot_type is valid
     valid_plot_types = ["histograms", "violins"]
     if plot_type not in valid_plot_types:
@@ -376,16 +375,20 @@ def get_plot(plot_type: str, feature: str = Query(..., title="Feature", descript
     elif plot_type == "violins":
         plot_file = f"{feature}_violin.html"
 
-    # Correctly access the file path by joining the Plots folder and the plot file name
-    plot_file_path = os.path.join("Plots", plot_file)
+    plot_file_path = os.path.join(plots_folder, plot_file)
 
-    # Check if the file exists in the Plots folder
+    # Check if the file exists
     if not os.path.exists(plot_file_path):
         raise HTTPException(status_code=404, detail=f"{plot_file} not found for feature {feature}.")
 
-    # Return the URL to the static file (to be rendered in the browser)
-    plot_file_url = f"/static/{plot_file}"
-    return {"file_url": plot_file_url}
+    # Generate the URL for the plot file
+    plot_url = f"/static/{plot_file}"
+
+    # You can modify this URL to your domain or host URL
+    full_url = f"http://your-api-url{plot_url}"
+
+    # Return the URL
+    return JSONResponse(content={"file_url": full_url})
 
 
 
