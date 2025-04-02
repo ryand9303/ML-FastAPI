@@ -351,17 +351,13 @@ def predict(
 
 
 
-# Folder where the plot files are stored
-plots_folder = "Plots"
-
-# Ensure the folder exists (for safety)
-if not os.path.exists(plots_folder):
-    os.makedirs(plots_folder)
+# GitHub repository details
+GITHUB_REPO_URL_plot = "https://raw.githubusercontent.com/ryand9303/ML-FastAPI/main/Plots"
 
 @app.get("/getPlot/{plot_type}")
 def get_plot(plot_type: str, feature: str = Query(..., title="Feature", description="Enter the feature name (e.g., PM1_P)")):
     """Serves the URL of the requested plot file based on the plot type and feature name."""
-    
+
     # Check if the plot_type is valid
     valid_plot_types = ["histograms", "violins", "correlation"]
     if plot_type not in valid_plot_types:
@@ -373,14 +369,18 @@ def get_plot(plot_type: str, feature: str = Query(..., title="Feature", descript
     elif plot_type == "violins":
         plot_file = f"{feature}_violin.html"
     elif plot_type == "correlation":
-        plot_file = "correlation_full.html"  # Correlation plot is always the same file
+        plot_file = "correlation_full.html"
 
-    # Construct the full GitHub URL for the raw file
-    raw_file_url = f"https://raw.githubusercontent.com/ryand9303/ML-FastAPI/main/Plots/{plot_file}"
+    # Build the raw GitHub URL
+    plot_url = f"{GITHUB_REPO_URL_plot}/{plot_file}"
+
+    # Check if the file exists by making a request to the raw URL
+    response = requests.head(plot_url)  # HEAD request to check if file exists without downloading it
+    if response.status_code != 200:
+        raise HTTPException(status_code=404, detail=f"{plot_file} not found for feature {feature} on GitHub.")
 
     # Return the URL
-    return JSONResponse(content={"file_url": raw_file_url})
-
+    return JSONResponse(content={"file_url": plot_url})
 
 
 
