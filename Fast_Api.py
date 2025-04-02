@@ -352,7 +352,6 @@ def predict(
 
 
 
-
 # Folder where the plot files are stored
 plots_folder = "Plots"
 
@@ -360,12 +359,11 @@ plots_folder = "Plots"
 if not os.path.exists(plots_folder):
     os.makedirs(plots_folder)
 
-
 app.mount("/static", StaticFiles(directory=plots_folder), name="static")
 
 @app.get("/getPlot/{plot_type}", response_class=HTMLResponse)
 def get_plot(plot_type: str, feature: str = Query(..., title="Feature", description="Enter the feature name (e.g., PM1_P)")):
-    """Serves the requested plot file based on the plot type and feature name (as an interactive HTML)."""
+    """Serves the requested plot file based on the plot type and feature name (outputs the URL of the plot)."""
     
     # Check if the plot_type is valid
     valid_plot_types = ["histograms", "violins"]
@@ -378,17 +376,23 @@ def get_plot(plot_type: str, feature: str = Query(..., title="Feature", descript
     elif plot_type == "violins":
         plot_file = f"{feature}_violin.html"
     
+    # Build the file path
     plot_file_path = os.path.join(plots_folder, plot_file)
 
     # Check if the file exists
     if not os.path.exists(plot_file_path):
         raise HTTPException(status_code=404, detail=f"{plot_file} not found for feature {feature}.")
 
-    # Read and return the HTML file content
-    with open(plot_file_path, 'r', encoding='utf-8') as file:
-        html_content = file.read()
+    # Construct the URL for the file
+    plot_file_url = f"/static/{plot_file}"
 
-    return HTMLResponse(content=html_content)
+    # Return the URL of the plot file
+    return {"plot_url": plot_file_url}
+
+
+
+
+
 
 
 
