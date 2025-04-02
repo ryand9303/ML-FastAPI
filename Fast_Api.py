@@ -374,8 +374,11 @@ app.mount("/static", StaticFiles(directory=plots_folder), name="static")
 def get_plot(plot_type: str, feature: str = Query(..., title="Feature", description="Enter the feature name (e.g., PM1_P)")):
     """Serves the requested plot file based on the plot type and feature name (as an interactive HTML)."""
     
+    # Initialize plot_file variable
+    plot_file = ""
+
     # Check if the plot_type is valid
-    valid_plot_types = ["histograms", "violins", "correlation"]
+    valid_plot_types = ["histogram", "violin", "correlation"]
     if plot_type not in valid_plot_types:
         raise HTTPException(status_code=400, detail="Invalid plot type. Choose from 'histogram', 'violin', or 'correlation'.")
 
@@ -386,7 +389,7 @@ def get_plot(plot_type: str, feature: str = Query(..., title="Feature", descript
         plot_file = f"{feature}_violin.html"
     elif plot_type == "correlation":
         plot_file = "correlation_full.html"
-    
+
     # Construct the full path to the plot file
     plot_file_path = os.path.join(plots_folder, plot_file)
 
