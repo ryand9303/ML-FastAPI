@@ -363,7 +363,7 @@ app.mount("/static", StaticFiles(directory=plots_folder), name="static")
 
 @app.get("/getPlot/{plot_type}", response_class=HTMLResponse)
 def get_plot(plot_type: str, feature: str = Query(..., title="Feature", description="Enter the feature name (e.g., PM1_P)")):
-    """Serves the requested plot file based on the plot type and feature name (outputs the URL of the plot)."""
+    """Serves the requested plot file based on the plot type and feature name (as an interactive HTML)."""
     
     # Check if the plot_type is valid
     valid_plot_types = ["histograms", "violins"]
@@ -375,19 +375,20 @@ def get_plot(plot_type: str, feature: str = Query(..., title="Feature", descript
         plot_file = f"{feature}_histogram.html"
     elif plot_type == "violins":
         plot_file = f"{feature}_violin.html"
-    
-    # Build the file path
+
+    # Log the file path for debugging purposes
+    print(f"Looking for file: {plot_file}")
+
     plot_file_path = os.path.join(plots_folder, plot_file)
 
     # Check if the file exists
     if not os.path.exists(plot_file_path):
+        print(f"File not found: {plot_file_path}")  # Debugging line
         raise HTTPException(status_code=404, detail=f"{plot_file} not found for feature {feature}.")
 
-    # Construct the URL for the file
+    # Return the file URL instead of the HTML content
     plot_file_url = f"/static/{plot_file}"
-
-    # Return the URL of the plot file
-    return {"plot_url": plot_file_url}
+    return {"file_url": plot_file_url}
 
 
 
