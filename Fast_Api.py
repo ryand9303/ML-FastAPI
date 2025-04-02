@@ -227,6 +227,14 @@ columns = ['Sim_Num', 'Case_Num', 'PM1_P', 'PM2_P', 'Mods1_Q', 'T1', 'T2', 'T3',
 # Hardcoded target variables
 targets = ['Rotor1_Torque.Torque', 'Rotor2_Torque.Torque', 'Mods1_Torque.Torque']
 
+important features = ['PM1_P', 'PM2_P', 'Mods1_Q', 'T1', 'T2', 'T3', 'T4', 'T4b', 'Mods1_Bridge_Position', 'T5', 'T6', 'T7', 'R8', 'PM1_Alpha', 'PM2_Alpha', 
+           'Mods1_Inner_Alpha', 'k_Mods1_Alpha', 'PM1_Radial_Portion', 'PM2_Radial_Portion', 'PM1_EM_Theta0', 'PM2_EM_Theta0', 'pm1rMatIndx', 'pm1tMatIndx', 'pm2rMatIndx', 
+           'pm2tMatIndx', 'Temperature', 'pm1rBknee', 'pm1tBknee', 'pm2rBknee', 'pm2tBknee', 'Rotor1_Torque.Torque', 
+           'Rotor1_Force.Force_mag', 'Rotor2_Torque.Torque', 'Rotor2_Force.Force_mag', 'Mods1_Torque.Torque', 'Mods1_Force.Force_mag', 'PM1_Torque.Torque', 
+           'PM1_Force.Force_mag', 'PM2_Torque.Torque', 'PM2_Force.Force_mag', 'Rotor1_Demag_Percentage', 'Rotor2_Demag_Percentage', 'PM1_Outs_Demag_Percentage', 
+           'PM2_Outs_Demag_Percentage', 'PM1_Ins_Demag_Percentage', 'PM2_Ins_Demag_Percentage', 'PM1_Radial_Demag_Percentage', 'PM2_Radial_Demag_Percentage' ]
+
+
 # Endpoint to get data summary (hardcoded)
 @app.get("/getDataSummary")
 def get_data_summary():
@@ -236,7 +244,8 @@ def get_data_summary():
             "num_rows": num_rows,
             "num_columns": num_cols,
             "columns": columns,
-            "targets": targets  # Add target variables to the summary
+            "targets": targets,  # Add target variables to the summary
+            "important features": important features
         }
 
         return JSONResponse(content=summary)
@@ -351,37 +360,45 @@ def predict(
 
 
 
-# GitHub repository details
-GITHUB_REPO_URL_plot = "https://raw.githubusercontent.com/ryand9303/ML-FastAPI/main/Plots"
+# Folder where the plot files are stored
+plots_folder = "Plots"
 
-@app.get("/getPlot/{plot_type}")
+# Ensure the folder exists (for safety)
+if not os.path.exists(plots_folder):
+    os.makedirs(plots_folder)
+
+# Mount the folder so it can be accessed as a static resource
+app.mount("/static", StaticFiles(directory=plots_folder), name="static")
+
+@app.get("/getPlot/{plot_type}", response_class=HTMLResponse)
 def get_plot(plot_type: str, feature: str = Query(..., title="Feature", description="Enter the feature name (e.g., PM1_P)")):
-    """Serves the URL of the requested plot file based on the plot type and feature name."""
-
+    """Serves the requested plot file based on the plot type and feature name (as an interactive HTML)."""
+    
     # Check if the plot_type is valid
     valid_plot_types = ["histograms", "violins", "correlation"]
     if plot_type not in valid_plot_types:
-        raise HTTPException(status_code=400, detail="Invalid plot type. Choose from 'histograms', 'violins', or 'correlation'.")
+        raise HTTPException(status_code=400, detail="Invalid plot type. Choose from 'histogram', 'violin', or 'correlation'.")
 
     # Build the filename based on the plot_type and feature
-    if plot_type == "histograms":
+    if plot_type == "histogram":
         plot_file = f"{feature}_histogram.html"
-    elif plot_type == "violins":
+    elif plot_type == "violin":
         plot_file = f"{feature}_violin.html"
     elif plot_type == "correlation":
         plot_file = "correlation_full.html"
+    
+    # Construct the full path to the plot file
+    plot_file_path = os.path.join(plots_folder, plot_file)
 
-    # Build the raw GitHub URL
-    plot_url = f"{GITHUB_REPO_URL_plot}/{plot_file}"
+    # Check if the file exists
+    if not os.path.exists(plot_file_path):
+        raise HTTPException(status_code=404, detail=f"{plot_file} not found for feature {feature}.")
 
-    # Check if the file exists by making a request to the raw URL
-    response = requests.head(plot_url)  # HEAD request to check if file exists without downloading it
-    if response.status_code != 200:
-        raise HTTPException(status_code=404, detail=f"{plot_file} not found for feature {feature} on GitHub.")
+    # Read and return the HTML file content
+    with open(plot_file_path, 'r', encoding='utf-8') as file:
+        html_content = file.read()
 
-    # Return the URL
-    return JSONResponse(content={"file_url": plot_url})
-
+    return HTMLResponse(content=html_content)
 
 
 
