@@ -357,19 +357,12 @@ def predict(
 
 
 
-# Folder where the plot files are stored
-plots_folder = "Plots"
-
-# Ensure the folder exists (for safety)
-if not os.path.exists(plots_folder):
-    os.makedirs(plots_folder)
-
 @app.get("/getPlot/{plot_type}")
 def get_plot(plot_type: str, feature: str = Query(..., title="Feature", description="Enter the feature name (e.g., PM1_P)")):
     """Serves the URL of the requested plot file based on the plot type and feature name."""
 
     # Check if the plot_type is valid
-    valid_plot_types = ["histogram", "violin"]
+    valid_plot_types = ["histograms", "violins"]
     if plot_type not in valid_plot_types:
         raise HTTPException(status_code=400, detail="Invalid plot type. Choose from 'histograms' or 'violins'.")
 
@@ -379,7 +372,11 @@ def get_plot(plot_type: str, feature: str = Query(..., title="Feature", descript
     elif plot_type == "violins":
         plot_file = f"{feature}_violin.html"
 
+    print(f"Generated plot filename: {plot_file}")  # Debugging line
+
+    # Verify the file path
     plot_file_path = os.path.join(plots_folder, plot_file)
+    print(f"Looking for {plot_file} at {plot_file_path}")  # Debugging line
 
     # Check if the file exists
     if not os.path.exists(plot_file_path):
