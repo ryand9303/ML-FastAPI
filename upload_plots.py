@@ -14,7 +14,7 @@ FOLDER_PATH = 'Plots'  # The folder where your plot files are located
 GITHUB_API_URL = f'https://api.github.com/repos/{GITHUB_USER}/{REPO_NAME}/contents/Plots/'
 
 # Directory where your plots are stored
-local_directory = os.path.expanduser('~/Downloads/hist')
+local_directory = r'C:\Users\anakl\Downloads\hist'  
 
 # Create headers for authentication
 headers = {
@@ -51,4 +51,3 @@ for filename in os.listdir(local_directory):
             print(f'Successfully uploaded {filename} to the repo.')
         else:
             print(f'Failed to upload {filename}. Response: {response.json()}')
-
