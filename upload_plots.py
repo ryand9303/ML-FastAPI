@@ -3,7 +3,7 @@ import base64
 import requests
 
 # GitHub repo details
-GITHUB_TOKEN = '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'
+GITHUB_TOKEN = ''
 GITHUB_USER = 'Emily-M-C'
 REPO_NAME = 'ML-FastAPI'
 BRANCH = 'main'  # or 'master'
