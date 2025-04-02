@@ -375,22 +375,11 @@ def get_plot(plot_type: str, feature: str = Query(..., title="Feature", descript
     elif plot_type == "correlation":
         plot_file = "correlation_full.html"  # Correlation plot is always the same file
 
-    # Construct the full file path
-    plot_file_path = os.path.join(plots_folder, plot_file)
-
-    # Check if the file exists
-    if not os.path.exists(plot_file_path):
-        raise HTTPException(status_code=404, detail=f"{plot_file} not found for feature {feature}.")
-
-    # Generate the URL for the plot file
-    plot_url = f"/static/{plot_file}"
-
-    # Full URL that can be used externally
-    full_url = f"http://ML-FastAPI{plot_url}"  # Replace `your-api-url` with your domain name or IP
+    # Construct the full GitHub URL for the raw file
+    raw_file_url = f"https://raw.githubusercontent.com/ryand9303/ML-FastAPI/main/Plots/{plot_file}"
 
     # Return the URL
-    return JSONResponse(content={"file_url": full_url})
-
+    return JSONResponse(content={"file_url": raw_file_url})
 
 
 
