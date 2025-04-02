@@ -1,5 +1,5 @@
 {
-    "RandomForest 1.0": {
+    "Random Forest 1.0": {
         "training_score": 0.9975389946957206,
         "testing_score": 0.9942460895946157,
         "mae": [
