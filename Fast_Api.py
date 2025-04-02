@@ -376,14 +376,12 @@ def get_plot(plot_type: str, feature: str = Query(..., title="Feature", descript
     elif plot_type == "violins":
         plot_file = f"{feature}_violin.html"
 
-    # Log the file path for debugging purposes
-    print(f"Looking for file: {plot_file}")
-
     plot_file_path = os.path.join(plots_folder, plot_file)
+    
+    print(f"Looking for plot at: {plot_file_path}")  # Add this log to check the file path
 
     # Check if the file exists
     if not os.path.exists(plot_file_path):
-        print(f"File not found: {plot_file_path}")  # Debugging line
         raise HTTPException(status_code=404, detail=f"{plot_file} not found for feature {feature}.")
 
     # Return the file URL instead of the HTML content
