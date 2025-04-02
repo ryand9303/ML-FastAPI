@@ -351,11 +351,12 @@ def predict(
 
 
 
+# Folder where the plot files are stored
+plots_folder = "Plots"
 
-
-
-
-
+# Ensure the folder exists (for safety)
+if not os.path.exists(plots_folder):
+    os.makedirs(plots_folder)
 
 @app.get("/getPlot/{plot_type}")
 def get_plot(plot_type: str, feature: str = Query(..., title="Feature", description="Enter the feature name (e.g., PM1_P)")):
