@@ -353,42 +353,6 @@ def predict(
 
 
 
-# Folder where the plot files are stored
-plots_folder = "Plots"
-
-# Ensure the folder exists (for safety)
-if not os.path.exists(plots_folder):
-    os.makedirs(plots_folder)
-
-
-app.mount("/static", StaticFiles(directory=plots_folder), name="static")
-
-@app.get("/getPlot/{plot_type}", response_class=HTMLResponse)
-def get_plot(plot_type: str, feature: str = Query(..., title="Feature", description="Enter the feature name (e.g., PM1_P)")):
-    """Serves the requested plot file based on the plot type and feature name (as an interactive HTML)."""
-    
-    # Check if the plot_type is valid
-    valid_plot_types = ["histograms", "violins"]
-    if plot_type not in valid_plot_types:
-        raise HTTPException(status_code=400, detail="Invalid plot type. Choose from 'histograms' or 'violins'.")
-
-    # Build the filename based on the plot_type and feature
-    if plot_type == "histograms":
-        plot_file = f"{feature}_histogram.html"
-    elif plot_type == "violins":
-        plot_file = f"{feature}_violin.html"
-    
-    plot_file_path = os.path.join(plots_folder, plot_file)
-
-    # Check if the file exists
-    if not os.path.exists(plot_file_path):
-        raise HTTPException(status_code=404, detail=f"{plot_file} not found for feature {feature}.")
-
-    # Read and return the HTML file content
-    with open(plot_file_path, 'r', encoding='utf-8') as file:
-        html_content = file.read()
-
-    return HTMLResponse(content=html_content)
 
 
 
@@ -398,59 +362,8 @@ def get_plot(plot_type: str, feature: str = Query(..., title="Feature", descript
 
 
 
-@app.get("/getModelPlots/{model_type}/{version}")
-def get_model_plots(model_type: str, version: str):
-    """
-    This endpoint returns the plot HTML files for a given model type and version.
-    model_type: "Random Forest" or "Gradient Boosting"
-    version: "1.0" or "2.0"
-    """
-    # Validate model type and version
-    valid_model_types = ["Random Forest", "Gradient Boosting"]
-    valid_versions = ["1.0", "2.0"]
-    
-    if model_type not in valid_model_types:
-        raise HTTPException(status_code=400, detail="Invalid model type. Use 'Random Forest' or 'Gradient Boosting'.")
-    if version not in valid_versions:
-        raise HTTPException(status_code=400, detail="Invalid version. Use '1.0' or '2.0'.")
 
-    # Define the model prefix (RF for Random Forest, GB for Gradient Boosting)
-    model_prefix = "RF" if model_type == "Random Forest" else "GB"
 
-    # Define the version prefix (95 for 1.0, 99 for 2.0)
-    version_prefix = "95" if version == "1.0" else "99"
-
-    # Construct the filenames based on model and version
-    files = [
-        f"{version_prefix}_{model_prefix}_mods1_actual_vs_pred.html",
-        f"{version_prefix}_{model_prefix}_rotor1_actual_vs_pred.html",
-        f"{version_prefix}_{model_prefix}_rotor2_actual_vs_pred.html",
-    ]
-
-    # Fetch the files from GitHub
-    downloaded_files = []
-    for file in files:
-        content = download_file_from_github(model_type, version, file)
-        
-        if content:
-            # Save the file locally and add it to the downloaded files list
-            file_path = os.path.join(plots_folder, file)
-            with open(file_path, 'wb') as f:
-                f.write(content)
-            downloaded_files.append(file_path)
-        else:
-            raise HTTPException(status_code=404, detail=f"Unable to find {file} for {model_type} version {version}.")
-
-    # Create a ZIP file containing the downloaded plot files
-    zip_filename = f"{model_prefix}_{version_prefix}_plots.zip"
-    zip_file_path = os.path.join(plots_folder, zip_filename)
-
-    with zipfile.ZipFile(zip_file_path, 'w') as zipf:
-        for file_path in downloaded_files:
-            zipf.write(file_path, os.path.basename(file_path))  # Write the file to the zip archive
-
-    # Return the ZIP file directly as a response (streaming the file)
-    return StreamingResponse(open(zip_file_path, "rb"), media_type="application/zip", headers={"Content-Disposition": f"attachment; filename={zip_filename}"})
 
 
 
