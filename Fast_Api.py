@@ -232,7 +232,10 @@ important_features = ['PM1_P', 'PM2_P', 'Mods1_Q', 'T1', 'T2', 'T3', 'T4', 'T4b'
            'pm2tMatIndx', 'Temperature', 'pm1rBknee', 'pm1tBknee', 'pm2rBknee', 'pm2tBknee', 'Rotor1_Torque.Torque', 
            'Rotor1_Force.Force_mag', 'Rotor2_Torque.Torque', 'Rotor2_Force.Force_mag', 'Mods1_Torque.Torque', 'Mods1_Force.Force_mag', 'PM1_Torque.Torque', 
            'PM1_Force.Force_mag', 'PM2_Torque.Torque', 'PM2_Force.Force_mag', 'Rotor1_Demag_Percentage', 'Rotor2_Demag_Percentage', 'PM1_Outs_Demag_Percentage', 
-           'PM2_Outs_Demag_Percentage', 'PM1_Ins_Demag_Percentage', 'PM2_Ins_Demag_Percentage', 'PM1_Radial_Demag_Percentage', 'PM2_Radial_Demag_Percentage' ]
+           'PM2_Outs_Demag_Percentage', 'PM1_Ins_Demag_Percentage', 'PM2_Ins_Demag_Percentage', 'PM1_Radial_Demag_Percentage', 'PM2_Radial_Demag_Percentage', 
+            'Mods1 Middle Circle max Mag_B', 'Mods1 Middle Circle rms Mag_B', 'Mods1 Middle Circle max Br', 'Mods1 Middle Circle rms Br', 'PM1 Middle Circle max Mag_B', 
+           'PM1 Middle Circle rms Mag_B', 'PM1 Middle Circle max Br', 'PM1 Middle Circle rms Br', 'PM2 Middle Circle max Mag_B', 'PM2 Middle Circle rms Mag_B', 
+           'PM2 Middle Circle max Br', 'PM2 Middle Circle rms Br']
 
 
 # Endpoint to get data summary (hardcoded)
