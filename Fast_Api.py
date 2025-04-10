@@ -69,10 +69,10 @@ def download_file_from_github(model_type, model_version, filename):
     response = requests.get(url, stream=True)
 
     if response.status_code == 200 and "text/html" not in response.headers.get("Content-Type", ""):
-        print(f"✅ Successfully downloaded {filename} for {model_type} {model_version}")  
+        print(f"Successfully downloaded {filename} for {model_type} {model_version}")  
         return response.content  # Ensures binary content is returned
     else:
-        print(f"⚠️ Warning: Could not download {filename} for {model_type} {model_version} (Status: {response.status_code})")  
+        print(f"Warning: Could not download {filename} for {model_type} {model_version} (Status: {response.status_code})")  
         return None
 
 def load_models():
@@ -82,7 +82,7 @@ def load_models():
         model_version = model["version"]
         model_key = f"{model_type} {model_version}"  # Unique identifier
 
-        print(f"🔄 Checking model {model_key} ...")  # Debugging
+        print(f"Checking model {model_key} ...")  # Debugging
 
         try:
             # Dynamically determine filenames
@@ -90,14 +90,14 @@ def load_models():
             metrics_file = f"performance_metrics{model_version}.json"
             model_file = f"tuned_multi_output_model{model_version}.pkl"
 
-            # ✅ Download files
+            # Download files
             model_content = download_file_from_github(model_type, model_version, model_file)
             features_content = download_file_from_github(model_type, model_version, feature_file)
             metrics_content = download_file_from_github(model_type, model_version, metrics_file)
 
             # Check if files exist
             if not all([model_content, features_content, metrics_content]):
-                print(f"⚠️ Model {model_key} is missing files. Marking as unavailable.")
+                print(f"Model {model_key} is missing files. Marking as unavailable.")
                 model_availability[model_key] = False
                 continue
 
@@ -108,21 +108,21 @@ def load_models():
 
             # Verify that the saved file is a valid pickle file before loading
             try:
-                print(f"📦 Validating and unpacking model {model_key}")
+                print(f"Validating and unpacking model {model_key}")
 
                 # First, check if it's a valid joblib file
                 with open(temp_model_path, "rb") as f:
                     first_byte = f.read(1)  # Read the first byte
 
                 if first_byte == b'\x80':  # Joblib format starts with 0x80
-                    model_obj = joblib.load(temp_model_path)  # ✅ Use joblib
+                    model_obj = joblib.load(temp_model_path)  #  Use joblib
                 else:
-                    print(f"⚠️ {model_key} might be a non-joblib pickle. Trying with pickle.")
+                    print(f"{model_key} might be a non-joblib pickle. Trying with pickle.")
                     with open(temp_model_path, "rb") as f:
                         model_obj = pickle.load(f)
 
             except Exception as e:
-                print(f"❌ Unpickling failed for {model_key}: {e}")
+                print(f"Unpickling failed for {model_key}: {e}")
                 model_availability[model_key] = False
                 continue
 
@@ -144,10 +144,10 @@ def load_models():
             }
 
             model_availability[model_key] = True  # Mark as available
-            print(f"✅ Loaded {model_key} successfully!")
+            print(f"Loaded {model_key} successfully!")
 
         except Exception as e:
-            print(f"❌ Error loading {model_key}: {e}")
+            print(f"Error loading {model_key}: {e}")
             model_availability[model_key] = False  # Mark as unavailable
 
 # Load models at startup
